@@ -1,0 +1,4 @@
+anthropic
+openai-whisper    # pulls in PyTorch — large download on first install
+requests
+python-dotenv
