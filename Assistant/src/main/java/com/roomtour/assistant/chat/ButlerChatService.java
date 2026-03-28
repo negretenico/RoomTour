@@ -6,6 +6,7 @@ import com.roomtour.assistant.core.model.ButlerRequest;
 import com.roomtour.assistant.core.model.ButlerResponse;
 import com.roomtour.assistant.core.model.Message;
 import com.roomtour.assistant.lifelog.LifelogService;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalTime;
@@ -13,6 +14,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
+@Slf4j
 @Service
 public class ButlerChatService implements ChatService<ButlerResponse, ButlerRequest> {
 
@@ -52,11 +54,13 @@ public class ButlerChatService implements ChatService<ButlerResponse, ButlerRequ
             history.removeFirst();
         }
 
+        log.debug("Routing chat: sessionId={}, room={}", sessionId, request.room());
         return claudeClient.send(buildSystemPrompt(request.room()), List.copyOf(history))
             .map(text -> {
                 history.addLast(new Message("assistant", text));
                 return new ButlerResponse(text, sessionId);
             })
+            .onFailure(e -> log.error("Chat failed for sessionId={}: {}", sessionId, e.getMessage(), e))
             .getOrElse(() -> new ButlerResponse("I'm sorry, I couldn't process that right now.", sessionId));
     }
 
