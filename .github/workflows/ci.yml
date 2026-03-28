@@ -19,7 +19,10 @@ jobs:
 
   build:
     needs: [check-assistant, check-server]
-    if: needs.check-assistant.outputs.should-build == 'true' || needs.check-server.outputs.should-build == 'true'
+    if: |
+      github.event_name == 'pull_request' ||
+      needs.check-assistant.outputs.should-build == 'true' ||
+      needs.check-server.outputs.should-build == 'true'
     runs-on: ubuntu-latest
     permissions:
       contents: read
