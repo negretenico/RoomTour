@@ -35,6 +35,9 @@ jobs:
         with:
           distribution: temurin
           java-version: '21'
+          server-id: github-functionico
+          server-username: GITHUB_ACTOR
+          server-password: GITHUB_TOKEN
 
       - uses: actions/cache@v3
         with:
@@ -45,5 +48,6 @@ jobs:
       - name: Build and test all modules
         run: mvn clean verify
         env:
+          GITHUB_ACTOR: ${{ github.actor }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
