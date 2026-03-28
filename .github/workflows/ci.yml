@@ -7,14 +7,22 @@ on:
     branches: [main]
 
 jobs:
-  check-changes:
+  check-assistant:
     uses: negretenico/GithubWorkflows/.github/workflows/should_build.yaml@main
     with:
       working_directory: Assistant
 
+  check-server:
+    uses: negretenico/GithubWorkflows/.github/workflows/should_build.yaml@main
+    with:
+      working_directory: Server
+
   build:
-    needs: check-changes
-    if: needs.check-changes.outputs.should-build == 'true'
+    needs: [check-assistant, check-server]
+    if: |
+      github.event_name == 'pull_request' ||
+      needs.check-assistant.outputs.should-build == 'true' ||
+      needs.check-server.outputs.should-build == 'true'
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -27,6 +35,9 @@ jobs:
         with:
           distribution: temurin
           java-version: '21'
+          server-id: github-functionico
+          server-username: GITHUB_ACTOR
+          server-password: GITHUB_TOKEN
 
       - uses: actions/cache@v3
         with:
@@ -37,5 +48,6 @@ jobs:
       - name: Build and test all modules
         run: mvn clean verify
         env:
+          GITHUB_ACTOR: ${{ github.actor }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}

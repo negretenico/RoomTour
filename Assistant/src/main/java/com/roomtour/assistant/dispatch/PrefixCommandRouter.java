@@ -6,8 +6,6 @@ import com.roomtour.assistant.config.ButlerProperties;
 import com.roomtour.assistant.core.model.ButlerRequest;
 import com.roomtour.assistant.core.model.ButlerResponse;
 import com.roomtour.assistant.lifelog.LifelogService;
-import org.springframework.stereotype.Service;
-
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -17,7 +15,6 @@ import java.util.UUID;
  * immediately (single-shot, no history). All other messages delegate to the
  * conversation service.
  */
-@Service
 public class PrefixCommandRouter implements CommandRouter {
 
     private final ChatService<ButlerResponse, ButlerRequest> chatService;

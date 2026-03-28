@@ -1,12 +1,20 @@
 package com.roomtour.assistant.config;
 
+import com.roomtour.assistant.ai.ClaudeClient;
+import com.roomtour.assistant.chat.ChatService;
+import com.roomtour.assistant.core.model.ButlerRequest;
+import com.roomtour.assistant.core.model.ButlerResponse;
 import com.roomtour.assistant.core.model.CalendarEvent;
 import com.roomtour.assistant.core.model.HealthData;
 import com.roomtour.assistant.core.model.WeatherSnapshot;
+import com.roomtour.assistant.dispatch.CommandRouter;
+import com.roomtour.assistant.dispatch.PrefixCommandRouter;
 import com.roomtour.assistant.lifelog.InMemoryLifelog;
 import com.roomtour.assistant.lifelog.LifelogService;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 
 import java.util.List;
@@ -15,9 +23,13 @@ import java.util.List;
  * Wires beans that can't use {@code @Service} directly.
  * {@link InMemoryLifelog} needs seed data converted from config → domain types,
  * so it lives here rather than as a stereotype.
+ *
+ * Registered as a Spring Boot auto-configuration so any application
+ * that depends on roomtour-assistant gets all assistant beans automatically.
  */
 @Configuration
 @EnableConfigurationProperties(ButlerProperties.class)
+@ComponentScan(basePackages = "com.roomtour.assistant")
 public class AssistantConfig {
 
     private final ButlerProperties props;
@@ -27,6 +39,7 @@ public class AssistantConfig {
     }
 
     @Bean
+    @ConditionalOnMissingBean(LifelogService.class)
     public LifelogService lifelogService() {
         ButlerProperties.LifelogProperties lp = props.getLifelog();
 
@@ -47,5 +60,13 @@ public class AssistantConfig {
         );
 
         return new InMemoryLifelog(calendar, weather, health);
+    }
+
+    @Bean
+    @ConditionalOnMissingBean(CommandRouter.class)
+    public CommandRouter commandRouter(ChatService<ButlerResponse, ButlerRequest> chatService,
+                                       LifelogService lifelogService,
+                                       ClaudeClient claudeClient) {
+        return new PrefixCommandRouter(chatService, lifelogService, claudeClient, props);
     }
 }
