@@ -11,7 +11,8 @@ build/
 venv/
 .venv/
 env/
-
+target/
+.evidence/
 # Environment / secrets
 .env
 .env.*
