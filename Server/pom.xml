@@ -26,6 +26,11 @@
             <version>${project.version}</version>
         </dependency>
         <dependency>
+            <groupId>com.roomtour</groupId>
+            <artifactId>roomtour-recognition</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
             <groupId>com.common</groupId>
             <artifactId>functionico</artifactId>
         </dependency>

@@ -3,13 +3,34 @@ package com.roomtour.recognition.core.model;
 import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 @Data
 @ConfigurationProperties(prefix = "butler.recognition")
 public class RecognitionProperties {
 
-    /**
-     * Room label returned by the simulated classifier.
-     * Leave blank to simulate an unrecognised room (returns {@code Maybe.empty()}).
-     */
+    /** When true, uses {@code SimulatedRoomClassifier} (returns {@code room}). Default. */
+    private boolean simulation = true;
+
+    /** Room label returned by the simulated classifier. */
     private String room = "unknown";
+
+    /**
+     * Per-room configuration used by the YOLO classifier.
+     * Key is the room label (e.g. {@code kitchen}, {@code living-room}).
+     */
+    private Map<String, RoomConfig> rooms = new HashMap<>();
+
+    @Data
+    public static class RoomConfig {
+        /** YOLO object labels that indicate this room type (e.g. stove, sink). */
+        private List<String> objects = new ArrayList<>();
+        /** Minimum floor area in square metres for this room type. */
+        private double minAreaM2 = 0;
+        /** Maximum floor area in square metres for this room type. */
+        private double maxAreaM2 = Double.MAX_VALUE;
+    }
 }

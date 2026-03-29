@@ -10,4 +10,9 @@ public record GeometricSignature(
     double ceilingHeightMeters,
     double openFloorRatio,
     int doorwayCount
-) {}
+) {
+    /** Returns true when real depth-camera data is present; false for a dummy/empty snapshot. */
+    public boolean isAvailable() {
+        return widthMeters > 0 && lengthMeters > 0;
+    }
+}
