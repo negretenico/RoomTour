@@ -1,3 +1,4 @@
+com\roomtour\assistant\ai\StubClaudeClient.class
 com\roomtour\assistant\core\model\Message.class
 com\roomtour\assistant\config\ButlerProperties.class
 com\roomtour\assistant\lifelog\InMemoryLifelog.class
