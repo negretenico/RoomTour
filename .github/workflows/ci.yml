@@ -7,34 +7,7 @@ on:
     branches: [main]
 
 jobs:
-  check-assistant:
-    uses: negretenico/GithubWorkflows/.github/workflows/should_build.yaml@main
-    with:
-      working_directory: Assistant
-
-  check-server:
-    uses: negretenico/GithubWorkflows/.github/workflows/should_build.yaml@main
-    with:
-      working_directory: Server
-
-  check-recognition:
-    uses: negretenico/GithubWorkflows/.github/workflows/should_build.yaml@main
-    with:
-      working_directory: Recognition
-
-  check-vision:
-    uses: negretenico/GithubWorkflows/.github/workflows/should_build.yaml@main
-    with:
-      working_directory: Vision
-
   build:
-    needs: [check-assistant, check-server, check-recognition, check-vision]
-    if: |
-      github.event_name == 'pull_request' ||
-      needs.check-assistant.outputs.should-build == 'true' ||
-      needs.check-server.outputs.should-build == 'true' ||
-      needs.check-recognition.outputs.should-build == 'true' ||
-      needs.check-vision.outputs.should-build == 'true'
     runs-on: ubuntu-latest
     permissions:
       contents: read
