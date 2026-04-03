@@ -18,8 +18,18 @@
         <module>Drone</module>
         <module>Recognition</module>
         <module>Server</module>
-        <module>Vision</module>
     </modules>
+
+    <profiles>
+        <!-- Opt-in: mvn clean install -Pvision  (requires bash + Python on PATH) -->
+        <!-- Always active in CI via the check-vision GitHub Actions job           -->
+        <profile>
+            <id>vision</id>
+            <modules>
+                <module>Vision</module>
+            </modules>
+        </profile>
+    </profiles>
 
     <properties>
         <java.version>21</java.version>

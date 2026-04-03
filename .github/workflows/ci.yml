@@ -68,7 +68,7 @@ jobs:
           restore-keys: ${{ runner.os }}-venv
 
       - name: Build and test all modules
-        run: mvn clean verify
+        run: mvn clean verify -Pvision
         env:
           GITHUB_ACTOR: ${{ github.actor }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
