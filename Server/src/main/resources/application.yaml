@@ -6,6 +6,25 @@ server:
   port: 8080
 
 butler:
+  recognition:
+    simulation: false
+    rooms:
+      kitchen:
+        objects: [oven, refrigerator, sink, microwave, toaster, cup, bowl, bottle, wine glass, fork, knife, spoon]
+        min-area-m2: 5
+        max-area-m2: 30
+      living-room:
+        objects: [couch, tv, remote, potted plant, book, clock, vase, chair, coffee table]
+        min-area-m2: 10
+        max-area-m2: 50
+      bedroom:
+        objects: [bed, pillow, laptop, cell phone, alarm clock, teddy bear]
+        min-area-m2: 8
+        max-area-m2: 40
+      bathroom:
+        objects: [toilet, toothbrush, hair drier, sink]
+        min-area-m2: 3
+        max-area-m2: 15
   name: Jeeves
   user-name: Nico
   personality: formal and witty home drone butler

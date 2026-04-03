@@ -22,13 +22,19 @@ jobs:
     with:
       working_directory: Recognition
 
+  check-vision:
+    uses: negretenico/GithubWorkflows/.github/workflows/should_build.yaml@main
+    with:
+      working_directory: Vision
+
   build:
-    needs: [check-assistant, check-server, check-recognition]
+    needs: [check-assistant, check-server, check-recognition, check-vision]
     if: |
       github.event_name == 'pull_request' ||
       needs.check-assistant.outputs.should-build == 'true' ||
       needs.check-server.outputs.should-build == 'true' ||
-      needs.check-recognition.outputs.should-build == 'true'
+      needs.check-recognition.outputs.should-build == 'true' ||
+      needs.check-vision.outputs.should-build == 'true'
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -45,11 +51,21 @@ jobs:
           server-username: GITHUB_ACTOR
           server-password: GITHUB_TOKEN
 
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
       - uses: actions/cache@v3
         with:
           path: ~/.m2
           key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
           restore-keys: ${{ runner.os }}-m2
+
+      - uses: actions/cache@v3
+        with:
+          path: Vision/.venv
+          key: ${{ runner.os }}-venv-${{ hashFiles('Vision/requirements.txt') }}
+          restore-keys: ${{ runner.os }}-venv
 
       - name: Build and test all modules
         run: mvn clean verify
