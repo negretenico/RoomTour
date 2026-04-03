@@ -28,13 +28,11 @@ if [ -z "$PYTHON" ]; then
 fi
 
 # Recreate venv if it was built for the wrong environment.
-# Check by structure (file presence) — never execute a cross-environment binary.
+# A valid venv must have either Scripts/python.exe (Windows CPython) or bin/python (Unix).
+# If neither exists the venv is corrupt — rebuild it.
 if [ -d "$VENV_DIR" ]; then
-  if $IS_WSL && [ ! -f "$VENV_DIR/bin/python" ]; then
-    echo "Windows venv detected under WSL — rebuilding..." >&2
-    rm -rf "$VENV_DIR"
-  elif ! $IS_WSL && [ ! -f "$VENV_DIR/Scripts/python.exe" ]; then
-    echo "Linux venv detected under Windows — rebuilding..." >&2
+  if [ ! -f "$VENV_DIR/Scripts/python.exe" ] && [ ! -f "$VENV_DIR/bin/python" ]; then
+    echo "Corrupt or empty venv detected — rebuilding..." >&2
     rm -rf "$VENV_DIR"
   fi
 fi
@@ -43,11 +41,14 @@ if [ ! -d "$VENV_DIR" ]; then
   "$PYTHON" -m venv "$VENV_DIR"
 fi
 
-# Resolve venv Python by structure
-if $IS_WSL; then
+# Resolve venv Python by probing actual layout — don't assume
+if [ -f "$VENV_DIR/Scripts/python.exe" ]; then
+  VENV_PYTHON="$VENV_DIR/Scripts/python.exe"
+elif [ -f "$VENV_DIR/bin/python" ]; then
   VENV_PYTHON="$VENV_DIR/bin/python"
 else
-  VENV_PYTHON="$VENV_DIR/Scripts/python.exe"
+  echo "ERROR: venv was created but no python binary found in $VENV_DIR" >&2
+  exit 1
 fi
 
 "$VENV_PYTHON" -m pip install -r requirements.txt
