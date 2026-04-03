@@ -41,7 +41,7 @@ class RecognitionControllerTest {
         var response = controller.onSidecarPush(payload);
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
-        verify(roomSessionStore).put(RecognitionController.GLOBAL_SESSION, "kitchen");
+        verify(roomSessionStore).put(RoomSessionStore.GLOBAL_SESSION, "kitchen");
     }
 
     @Test

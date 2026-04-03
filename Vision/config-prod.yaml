@@ -1,0 +1,14 @@
+camera:
+  index: 0
+
+webhook:
+  host: server
+  port: 8080
+  path: /api/v1/recognition/classify
+
+inference:
+  confidence_threshold: 0.5
+  interval_sec: 0.5
+
+model:
+  weights: yolov8n.pt

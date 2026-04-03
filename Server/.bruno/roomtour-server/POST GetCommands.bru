@@ -1,0 +1,29 @@
+meta {
+  name: POST GetCommands
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{baseUrl}}/api/v1/chat
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "message": "/commands"
+  }
+}
+
+body:xml {
+  {
+    "message": "/where-am-i",
+    "sessionId": "{{sessionId}}"
+  }
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

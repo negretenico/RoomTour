@@ -100,6 +100,26 @@ class PrefixCommandRouterTest {
     }
 
     @Test
+    void commandsListsAllAvailableCommands() {
+        ButlerResponse response = router.route(new ButlerRequest("/commands", "kitchen", "s1"));
+        assertThat(response.response())
+                .contains("/where-am-i")
+                .contains("/whats-new")
+                .contains("/brief")
+                .contains("/add-note")
+                .contains("/commands")
+                .doesNotContain("\\n");
+        verifyNoInteractions(chatService, claudeClient);
+    }
+
+    @Test
+    void whereAmIReturnsCurrentRoom() {
+        ButlerResponse response = router.route(new ButlerRequest("/where-am-i", "bedroom", "s1"));
+        assertThat(response.response()).containsIgnoringCase("bedroom");
+        verifyNoInteractions(chatService, claudeClient);
+    }
+
+    @Test
     void unrecognisedCommandIsReportedToUser() {
         ButlerResponse response = router.route(new ButlerRequest("/fly-to-moon", "kitchen", "s1"));
         assertThat(response.response()).containsIgnoringCase("unknown");
