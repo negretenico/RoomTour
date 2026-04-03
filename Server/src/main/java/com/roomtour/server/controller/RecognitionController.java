@@ -25,8 +25,6 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 @RequestMapping(value = "/api/v1/recognition", produces = APPLICATION_JSON_VALUE)
 public class RecognitionController {
 
-    static final String GLOBAL_SESSION = "__global__";
-
     private final RoomClassifier roomClassifier;
     private final RoomSessionStore roomSessionStore;
 
@@ -45,7 +43,7 @@ public class RecognitionController {
         roomClassifier.classify(observation)
             .ifPresent(room -> {
                 log.info("Room classified: {}", room);
-                roomSessionStore.put(GLOBAL_SESSION, room);
+                roomSessionStore.put(RoomSessionStore.GLOBAL_SESSION, room);
             });
         return ResponseEntity.ok().build();
     }

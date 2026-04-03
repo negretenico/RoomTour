@@ -44,10 +44,12 @@ public class PrefixCommandRouter implements CommandRouter {
             .orElse(UUID.randomUUID().toString());
 
         return switch (commandToken(message)) {
-            case "/whats-new" -> whatsNew(sessionId);
-            case "/brief"     -> brief(sessionId);
-            case "/add-note"  -> addNote(message, sessionId);
-            default           -> unknown(commandToken(message), sessionId);
+            case "/whats-new"   -> whatsNew(sessionId);
+            case "/brief"       -> brief(sessionId);
+            case "/add-note"    -> addNote(message, sessionId);
+            case "/where-am-i"  -> whereAmI(request.room(), sessionId);
+            case "/commands"    -> commands(sessionId);
+            default             -> unknown(commandToken(message), sessionId);
         };
     }
 
@@ -81,6 +83,17 @@ public class PrefixCommandRouter implements CommandRouter {
         }
         lifelogService.addNote(note);
         return new ButlerResponse("Got it, I've noted: \"" + note + "\"", sessionId);
+    }
+
+    private ButlerResponse commands(String sessionId) {
+        String list = "/commands | /where-am-i | /whats-new | /brief | /add-note <text>";
+        return new ButlerResponse(list, sessionId);
+    }
+
+    private ButlerResponse whereAmI(String room, String sessionId) {
+        String location = (room == null || room.isBlank() || room.equals("unknown"))
+            ? "an unrecognised room" : room;
+        return new ButlerResponse("You are in the " + location + ".", sessionId);
     }
 
     private ButlerResponse unknown(String token, String sessionId) {

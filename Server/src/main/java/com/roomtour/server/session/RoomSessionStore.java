@@ -9,6 +9,8 @@ import java.util.concurrent.ConcurrentHashMap;
 @Component
 public class RoomSessionStore {
 
+    public static final String GLOBAL_SESSION = "__global__";
+
     private final Map<String, String> roomBySession = new ConcurrentHashMap<>();
 
     public void put(String sessionId, String room) {
@@ -16,6 +18,7 @@ public class RoomSessionStore {
     }
 
     public String getOrDefault(String sessionId, String defaultRoom) {
-        return roomBySession.getOrDefault(sessionId, defaultRoom);
+        return roomBySession.getOrDefault(sessionId,
+                roomBySession.getOrDefault(GLOBAL_SESSION, defaultRoom));
     }
 }
