@@ -3,6 +3,7 @@ package com.roomtour.server.controller;
 import com.roomtour.assistant.core.model.ButlerResponse;
 import com.roomtour.assistant.dispatch.CommandRouter;
 import com.roomtour.assistant.lifelog.LifelogService;
+import com.roomtour.assistant.lifelog.MutableLifelog;
 import com.roomtour.server.model.chat.ChatRequest;
 import com.roomtour.server.model.chat.ChatResponse;
 import com.roomtour.server.model.lifelog.LifelogResponse;
@@ -172,6 +173,11 @@ class ServerApiTest {
         @Primary
         LifelogService lifelogService() {
             return Mockito.mock(LifelogService.class);
+        }
+
+        @Bean
+        MutableLifelog mutableLifelog() {
+            return Mockito.mock(MutableLifelog.class);
         }
     }
 }

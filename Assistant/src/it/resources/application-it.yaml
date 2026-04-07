@@ -1,0 +1,10 @@
+butler:
+  name: TestJeeves
+  user-name: TestUser
+  personality: test butler
+
+glax-weather:
+  location: "Austin, TX"
+
+lifelog:
+  refresh-rate-ms: 100

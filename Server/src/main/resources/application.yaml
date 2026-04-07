@@ -1,9 +1,9 @@
 spring:
   application:
-    name: roomtour-server
+    name: roomtour-assistant
 
-server:
-  port: 8080
+glax-weather:
+  location: "Columbus"
 
 butler:
   recognition:
@@ -36,13 +36,6 @@ butler:
       - date: "2026-03-28"
         time: "3:00 PM"
         title: "1:1 with manager"
-    weather:
-      location: "Austin, TX"
-      condition: "Sunny"
-      temperature-f: 72
-      high-f: 78
-      low-f: 55
-      forecast: "Clear skies through the weekend"
     health:
       sleep-hours: 7.5
       sleep-quality: "good"
