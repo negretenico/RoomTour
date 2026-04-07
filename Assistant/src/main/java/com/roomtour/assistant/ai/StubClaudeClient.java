@@ -15,7 +15,7 @@ import java.util.List;
  * Activated by {@code spring.profiles.active=local}; never active in prod.
  */
 @Component
-@Profile("local")
+@Profile({"local", "it"})
 public class StubClaudeClient implements ClaudeClient {
 
     private final String cannedResponse;

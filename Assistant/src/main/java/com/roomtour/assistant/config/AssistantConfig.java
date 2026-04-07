@@ -40,7 +40,7 @@ public class AssistantConfig {
 
     @Bean
     @ConditionalOnMissingBean(LifelogService.class)
-    public LifelogService lifelogService() {
+    public InMemoryLifelog lifelogService() {
         ButlerProperties.LifelogProperties lp = props.getLifelog();
 
         List<CalendarEvent> calendar = lp.getCalendar().stream()

@@ -15,10 +15,10 @@ import java.util.stream.Stream;
  * All write methods are thread-safe — safe to call from a scheduled worker.
  * State is lost on restart by design.
  */
-public class InMemoryLifelog implements LifelogService {
+public class InMemoryLifelog implements LifelogService, MutableLifelog {
 
     private final List<CalendarEvent> calendar;
-    private final WeatherSnapshot     weather;
+    private volatile WeatherSnapshot  weather;
     private final HealthData          health;
     private final List<String>        notes = new CopyOnWriteArrayList<>();
 
@@ -43,6 +43,11 @@ public class InMemoryLifelog implements LifelogService {
         return Stream.of(calendarSection(), weatherSection(), healthSection(), notesSection())
             .flatMap(Optional::stream)
             .collect(Collectors.joining("\n"));
+    }
+
+    @Override
+    public void updateWeather(WeatherSnapshot snapshot) {
+        this.weather = snapshot;
     }
 
     // ---------------------------------------------------------------------------
