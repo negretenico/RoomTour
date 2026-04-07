@@ -9,6 +9,8 @@ public class WebClientConfig {
 
     @Bean("glaxWeatherWebClient")
     public WebClient glaxWeatherWebClient(GlaxWeatherProperties props) {
-        return WebClient.builder().baseUrl(props.baseUrl()).build();
+        return WebClient.builder()
+                .baseUrl(props.baseUrl() + "/api/glax_weather.json")
+                .build();
     }
 }

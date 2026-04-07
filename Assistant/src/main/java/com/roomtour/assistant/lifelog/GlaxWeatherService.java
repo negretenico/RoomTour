@@ -25,7 +25,6 @@ public class GlaxWeatherService implements WeatherService {
         return Try.of(() -> {
             GlaxWeatherResponse response = glaxWeatherWebClient.get()
                     .uri(u -> u
-                            .path("/api/glax_weather.json")
                             .queryParam("location", location)
                             .queryParam("units", "imperial")
                             .build())

@@ -27,15 +27,10 @@ class LifelogRefreshIT {
 
     @DynamicPropertySource
     static void configureBaseUrls(DynamicPropertyRegistry registry) {
-        registry.add("google-calendar.base-url", wireMock::baseUrl);
         registry.add("glax-weather.base-url", wireMock::baseUrl);
     }
 
     @Autowired LifelogService lifelogService;
-
-    // Google Calendar is not tested here — GoogleCalendarConfig is @ConditionalOnProperty
-    // and the service-account-key-path is not set in the IT profile, so the Calendar bean
-    // is absent and fetchUpcoming() returns empty gracefully.
 
     @BeforeEach
     void stubExternalApis() {

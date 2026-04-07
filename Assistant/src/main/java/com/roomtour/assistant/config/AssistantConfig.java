@@ -41,19 +41,19 @@ public class AssistantConfig {
     @Bean
     @ConditionalOnMissingBean(LifelogService.class)
     public InMemoryLifelog lifelogService() {
-        ButlerProperties.LifelogProperties lp = props.getLifelog();
+        LifelogProperties lp = props.getLifelog();
 
         List<CalendarEvent> calendar = lp.getCalendar().stream()
             .map(e -> new CalendarEvent(e.getDate(), e.getTime(), e.getTitle()))
             .toList();
 
-        ButlerProperties.WeatherConfig w = lp.getWeather();
+        WeatherConfig w = lp.getWeather();
         WeatherSnapshot weather = new WeatherSnapshot(
             w.getLocation(), w.getCondition(),
             w.getTemperatureF(), w.getHighF(), w.getLowF(), w.getForecast()
         );
 
-        ButlerProperties.HealthConfig h = lp.getHealth();
+        HealthConfig h = lp.getHealth();
         HealthData health = new HealthData(
             h.getSleepHours(), h.getSleepQuality(),
             h.getStepsToday(), h.getStepsGoal(), h.getNotes()

@@ -24,9 +24,11 @@ public class LifelogRefreshScheduler {
 
     @Scheduled(fixedRateString = "${lifelog.refresh-rate-ms:900000}")
     public void refresh() {
+        log.info("Refreshing lifelog: weather location={}", weatherProps.location());
         weatherService.fetchCurrent(weatherProps.location())
                 .onFailure(e -> log.warn("Weather refresh failed: {}", e.getMessage()))
                 .map(snapshot -> {
+                    log.info("Weather updated: {}, {}°F", snapshot.condition(), snapshot.temperatureF());
                     publisher.publishEvent(new WeatherRefreshedEvent(this, snapshot));
                     return snapshot;
                 });
