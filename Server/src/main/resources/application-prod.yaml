@@ -1,0 +1,9 @@
+butler:
+  voice:
+    enabled: true
+    whisper-url: http://localhost:8000
+    espeak-binary: espeak-ng
+    silence-duration-ms: 800
+    silence-threshold: 200
+    max-duration-ms: 15000
+    sample-rate-hz: 16000
