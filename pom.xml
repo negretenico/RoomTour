@@ -18,6 +18,7 @@
         <module>Drone</module>
         <module>Recognition</module>
         <module>Server</module>
+        <module>Voice</module>
     </modules>
 
     <profiles>

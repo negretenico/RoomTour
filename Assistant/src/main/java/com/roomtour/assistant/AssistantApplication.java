@@ -1,12 +1,9 @@
 package com.roomtour.assistant;
 
-import org.springframework.boot.SpringApplication;
-import org.springframework.boot.autoconfigure.SpringBootApplication;
-
-@SpringBootApplication
-public class AssistantApplication {
-
-    public static void main(String[] args) {
-        SpringApplication.run(AssistantApplication.class, args);
-    }
+/**
+ * Marker class — roomtour-assistant is a library.
+ * The runnable entry point is roomtour-server (ServerApplication).
+ */
+public final class AssistantApplication {
+    private AssistantApplication() {}
 }
