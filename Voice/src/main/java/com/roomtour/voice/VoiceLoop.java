@@ -67,11 +67,15 @@ public class VoiceLoop {
     private void loop() {
         while (running && !Thread.currentThread().isInterrupted()) {
             micCapture.capture()
+                    .onSuccess(chunk -> log.info("[STT] Captured {} bytes, sending to Whisper", chunk.pcm().length))
                     .flatMap(stt::transcribe)
+                    .onSuccess(transcript -> log.info("[STT] Transcribed: \"{}\"", transcript))
                     .map(transcript -> commandRouter.route(
                             new ButlerRequest(transcript, "unknown", sessionId)))
+                    .onSuccess(response -> log.info("[Brain] Response: \"{}\"", response.response()))
                     .map(ButlerResponse::response)
                     .flatMap(tts::synthesize)
+                    .onSuccess(chunk -> log.info("[TTS] Synthesized {} bytes, playing", chunk.pcm().length))
                     .onSuccess(audioPlayer::play)
                     .onFailure(e -> log.warn("Voice loop iteration failed: {}", e.getMessage()));
         }

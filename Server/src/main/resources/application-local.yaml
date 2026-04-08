@@ -1,8 +1,12 @@
+logging:
+  level:
+    com.roomtour: DEBUG
+
 butler:
   voice:
     enabled: true
     whisper-url: http://localhost:8000
-    espeak-binary: espeak-ng
+    espeak-binary: "C:\\Program Files\\eSpeak NG\\espeak-ng.exe"
     silence-duration-ms: 800
     silence-threshold: 200
     max-duration-ms: 15000

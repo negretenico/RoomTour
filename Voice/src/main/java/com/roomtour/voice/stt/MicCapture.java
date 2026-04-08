@@ -23,9 +23,10 @@ import java.io.ByteArrayOutputStream;
 @ConditionalOnProperty(prefix = "butler.voice", name = "enabled", havingValue = "true")
 public class MicCapture {
 
-    private static final int BITS_PER_SAMPLE = 16;
-    private static final int CHANNELS        = 1;
-    private static final int FRAME_MS        = 20;
+    private static final int BITS_PER_SAMPLE  = 16;
+    private static final int CHANNELS         = 1;
+    private static final int FRAME_MS         = 20;
+    private static final int RMS_LOG_INTERVAL = 50; // log RMS every ~1 second (50 x 20ms frames)
 
     private final VoiceProperties props;
 
@@ -56,6 +57,7 @@ public class MicCapture {
         boolean recording    = false;
         long    silenceStart = -1;
         long    captureStart = System.currentTimeMillis();
+        int     frameCount   = 0;
 
         while (true) {
             if (System.currentTimeMillis() - captureStart >= props.maxDurationMs()) {
@@ -67,6 +69,9 @@ public class MicCapture {
             if (bytesRead <= 0) continue;
 
             double rms = computeRms(frame, bytesRead);
+            if (++frameCount % RMS_LOG_INTERVAL == 0) {
+                log.debug("Mic RMS={}  threshold={}  recording={}", (int) rms, props.silenceThreshold(), recording);
+            }
 
             if (rms >= props.silenceThreshold()) {
                 if (!recording) log.debug("Speech detected, recording");
