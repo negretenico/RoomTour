@@ -71,11 +71,12 @@ public class AssistantConfig {
     public CommandRouter commandRouter(ChatService<ButlerResponse, ButlerRequest> chatService,
                                        LifelogService lifelogService,
                                        ClaudeClient claudeClient,
+                                       NavigationProperties navProps,
                                        MapBuildingSession mapSession,
                                        GraphPersistenceService graphPersistence,
                                        GraphBuildingServiceFactory graphFactory,
                                        ConnectionPatternParser patternParser) {
-        return new PrefixCommandRouter(chatService, lifelogService, claudeClient, props,
+        return new PrefixCommandRouter(chatService, lifelogService, claudeClient, props, navProps,
                                        mapSession, graphPersistence, graphFactory, patternParser);
     }
 }

@@ -1,0 +1,24 @@
+meta {
+  name: POST MAP
+  type: http
+  seq: 6
+}
+
+post {
+  url: {{baseUrl}}/api/v1/chat
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "message": "/map",
+    "sessionId": "{{sessionId}}"
+  }
+}
+
+script:post-response {
+  if (res.status === 200 && res.body.sessionId) {
+    bru.setVar("sessionId", res.body.sessionId);
+  }
+}

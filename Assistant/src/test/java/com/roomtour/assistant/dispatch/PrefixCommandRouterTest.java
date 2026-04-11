@@ -8,6 +8,7 @@ import com.roomtour.assistant.config.ButlerProperties;
 import com.roomtour.assistant.core.model.ButlerRequest;
 import com.roomtour.assistant.core.model.ButlerResponse;
 import com.roomtour.assistant.lifelog.LifelogService;
+import com.roomtour.assistant.config.NavigationProperties;
 import com.roomtour.assistant.navigation.ConnectionPatternParser;
 import com.roomtour.assistant.navigation.GraphBuildingServiceFactory;
 import com.roomtour.assistant.navigation.GraphPersistenceService;
@@ -38,11 +39,12 @@ class PrefixCommandRouterTest {
 
     @BeforeEach
     void setUp() {
-        ButlerProperties props = new ButlerProperties();
-        props.setName("Jeeves");
-        props.setUserName("Nico");
-        router = new PrefixCommandRouter(chatService, lifelogService, claudeClient, props,
-                                         mapSession, graphPersistence, graphFactory, patternParser);
+        ButlerProperties butlerProps = new ButlerProperties();
+        butlerProps.setName("Jeeves");
+        butlerProps.setUserName("Nico");
+        router = new PrefixCommandRouter(chatService, lifelogService, claudeClient, butlerProps,
+                                         new NavigationProperties(), mapSession, graphPersistence,
+                                         graphFactory, patternParser);
     }
 
     @Test

@@ -3,10 +3,9 @@ package com.roomtour.assistant.navigation;
 import com.common.functionico.risky.Failure;
 import com.common.functionico.risky.Success;
 import com.common.functionico.risky.Try;
+import com.common.functionico.value.Maybe;
+import com.roomtour.assistant.config.NavigationProperties;
 import org.springframework.stereotype.Component;
-
-import java.util.List;
-import java.util.Set;
 
 /**
  * Stateless parser that extracts room connections from natural language utterances
@@ -20,56 +19,49 @@ import java.util.Set;
 @Component
 public class ConnectionPatternParser {
 
-    private static final List<String> CONNECTION_VERBS = List.of(
-        "is connected to",
-        "connects to",
-        "is adjacent to",
-        "is next to",
-        "leads to",
-        "goes to"
-    );
+    private final NavigationProperties props;
 
-    private static final Set<String> ARTICLES = Set.of("the", "a", "an");
+    public ConnectionPatternParser(NavigationProperties props) {
+        this.props = props;
+    }
 
     public Try<String> parse(String utterance, GraphBuildingService service) {
         String lower = utterance.strip().toLowerCase();
 
-        for (String verb : CONNECTION_VERBS) {
-            int idx = lower.indexOf(verb);
-            if (idx < 0) continue;
-
-            String fromRaw = lower.substring(0, idx).strip();
-            String toRaw   = lower.substring(idx + verb.length()).strip();
-
-            if (fromRaw.isBlank() || toRaw.isBlank()) continue;
-
-            String from = stripArticle(fromRaw);
-            String to   = stripArticle(toRaw);
-
-            if (from.isBlank() || to.isBlank()) continue;
-
-            service.addConnection(from, to, 1.0);
-
-            String fromDisplay = service.getGraph().getRooms()
-                .getOrDefault(RoomGraph.normalize(from), from);
-            String toDisplay = service.getGraph().getRooms()
-                .getOrDefault(RoomGraph.normalize(to), to);
-
-            return new Success<>("Got it \u2014 " + fromDisplay + " \u2194 " + toDisplay + " connected.");
-        }
-
-        return new Failure<>(new IllegalArgumentException(
-            "Could not parse room connection from: \"" + utterance + "\". " +
-            "Try: 'kitchen connects to the living room'."
-        ));
+        return Maybe.of(
+                props.getConnectionVerbs().stream()
+                    .filter(lower::contains)
+                    .findFirst()
+                    .orElse(null))
+            .map(verb -> buildConnection(lower, verb, service))
+            .orElse(new Failure<>(new IllegalArgumentException(
+                "Could not parse room connection from: \"" + utterance + "\". " +
+                "Try: 'kitchen connects to the living room'."
+            )));
     }
 
-    private static String stripArticle(String s) {
-        for (String article : ARTICLES) {
-            if (s.startsWith(article + " ")) {
-                return s.substring(article.length()).strip();
-            }
+    private Try<String> buildConnection(String lower, String verb, GraphBuildingService service) {
+        int    idx     = lower.indexOf(verb);
+        String from    = stripArticle(lower.substring(0, idx).strip());
+        String to      = stripArticle(lower.substring(idx + verb.length()).strip());
+
+        if (from.isBlank() || to.isBlank()) {
+            return new Failure<>(new IllegalArgumentException("Room name missing on one side of: \"" + lower + "\""));
         }
-        return s;
+
+        service.addConnection(from, to, 1.0);
+
+        String fromDisplay = service.getGraph().getRooms().getOrDefault(RoomGraph.normalize(from), from);
+        String toDisplay   = service.getGraph().getRooms().getOrDefault(RoomGraph.normalize(to), to);
+
+        return new Success<>("Got it \u2014 " + fromDisplay + " \u2194 " + toDisplay + " connected.");
+    }
+
+    private String stripArticle(String s) {
+        return props.getArticles().stream()
+            .filter(a -> s.startsWith(a + " "))
+            .findFirst()
+            .map(a -> s.substring(a.length()).strip())
+            .orElse(s);
     }
 }

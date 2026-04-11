@@ -1,6 +1,7 @@
 package com.roomtour.assistant.navigation;
 
 import com.common.functionico.risky.Try;
+import com.roomtour.assistant.config.NavigationProperties;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -13,7 +14,7 @@ class ConnectionPatternParserTest {
 
     @BeforeEach
     void setUp() {
-        parser  = new ConnectionPatternParser();
+        parser  = new ConnectionPatternParser(new NavigationProperties());
         service = new VoiceGraphBuilder(new RoomGraph());
     }
 

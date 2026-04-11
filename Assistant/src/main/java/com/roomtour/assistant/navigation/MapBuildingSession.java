@@ -1,36 +1,30 @@
 package com.roomtour.assistant.navigation;
 
 import com.common.functionico.value.Maybe;
+import com.roomtour.assistant.config.NavigationProperties;
 import org.springframework.stereotype.Component;
 
 import java.time.Duration;
-import java.time.Instant;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Tracks active map-building sessions per sessionId.
  * Each session holds a GraphBuildingService being built up over multiple turns.
- * Sessions expire after TIMEOUT of inactivity.
+ * Sessions expire after the configured timeout of inactivity.
  */
 @Component
 public class MapBuildingSession {
 
-    static final Duration TIMEOUT = Duration.ofMinutes(5);
-
-    private record ActiveSession(GraphBuildingService service, Instant lastActivity) {
-        boolean isExpired() {
-            return Instant.now().isAfter(lastActivity.plus(TIMEOUT));
-        }
-        ActiveSession touch() {
-            return new ActiveSession(service, Instant.now());
-        }
-    }
-
+    private final Duration timeout;
     private final Map<String, ActiveSession> sessions = new ConcurrentHashMap<>();
 
+    public MapBuildingSession(NavigationProperties props) {
+        this.timeout = Duration.ofMinutes(props.getSessionTimeoutMinutes());
+    }
+
     public void start(String sessionId, GraphBuildingService service) {
-        sessions.put(sessionId, new ActiveSession(service, Instant.now()));
+        sessions.put(sessionId, new ActiveSession(service, timeout));
     }
 
     public boolean isActive(String sessionId) {

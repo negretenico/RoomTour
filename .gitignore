@@ -54,3 +54,4 @@ npm-debug.log*
 # AI agent tooling (local only — skills-lock.json and SKILL.md are committed, not these)
 .agents/
 .claude/
+data/*
