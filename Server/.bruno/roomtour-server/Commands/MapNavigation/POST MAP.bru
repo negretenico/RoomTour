@@ -1,18 +1,18 @@
 meta {
-  name: POST set-room
+  name: POST MAP
   type: http
-  seq: 4
+  seq: 5
 }
 
 post {
-  url: {{baseUrl}}/api/v1/room
+  url: {{baseUrl}}/api/v1/chat
   body: json
   auth: none
 }
 
 body:json {
   {
-    "room": "livingroom",
+    "message": "/map",
     "sessionId": "{{sessionId}}"
   }
 }
