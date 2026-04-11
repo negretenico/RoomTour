@@ -11,6 +11,10 @@ import com.roomtour.assistant.dispatch.CommandRouter;
 import com.roomtour.assistant.dispatch.PrefixCommandRouter;
 import com.roomtour.assistant.lifelog.InMemoryLifelog;
 import com.roomtour.assistant.lifelog.LifelogService;
+import com.roomtour.assistant.navigation.ConnectionPatternParser;
+import com.roomtour.assistant.navigation.GraphBuildingServiceFactory;
+import com.roomtour.assistant.navigation.GraphPersistenceService;
+import com.roomtour.assistant.navigation.MapBuildingSession;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
@@ -28,7 +32,7 @@ import java.util.List;
  * that depends on roomtour-assistant gets all assistant beans automatically.
  */
 @Configuration
-@EnableConfigurationProperties(ButlerProperties.class)
+@EnableConfigurationProperties({ButlerProperties.class, NavigationProperties.class})
 @ComponentScan(basePackages = "com.roomtour.assistant")
 public class AssistantConfig {
 
@@ -66,7 +70,13 @@ public class AssistantConfig {
     @ConditionalOnMissingBean(CommandRouter.class)
     public CommandRouter commandRouter(ChatService<ButlerResponse, ButlerRequest> chatService,
                                        LifelogService lifelogService,
-                                       ClaudeClient claudeClient) {
-        return new PrefixCommandRouter(chatService, lifelogService, claudeClient, props);
+                                       ClaudeClient claudeClient,
+                                       NavigationProperties navProps,
+                                       MapBuildingSession mapSession,
+                                       GraphPersistenceService graphPersistence,
+                                       GraphBuildingServiceFactory graphFactory,
+                                       ConnectionPatternParser patternParser) {
+        return new PrefixCommandRouter(chatService, lifelogService, claudeClient, props, navProps,
+                                       mapSession, graphPersistence, graphFactory, patternParser);
     }
 }
