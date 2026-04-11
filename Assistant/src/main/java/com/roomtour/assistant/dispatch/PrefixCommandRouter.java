@@ -13,6 +13,8 @@ import com.roomtour.assistant.navigation.ConnectionPatternParser;
 import com.roomtour.assistant.navigation.GraphBuildingServiceFactory;
 import com.roomtour.assistant.navigation.GraphPersistenceService;
 import com.roomtour.assistant.navigation.MapBuildingSession;
+import com.roomtour.assistant.navigation.RoomGraph;
+import com.roomtour.assistant.navigation.RoomGraphHolder;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.List;
@@ -36,6 +38,7 @@ public class PrefixCommandRouter implements CommandRouter {
     private final GraphPersistenceService graphPersistence;
     private final GraphBuildingServiceFactory graphFactory;
     private final ConnectionPatternParser patternParser;
+    private final RoomGraphHolder graphHolder;
 
     public PrefixCommandRouter(ChatService<ButlerResponse, ButlerRequest> chatService,
                                 LifelogService lifelogService,
@@ -45,7 +48,8 @@ public class PrefixCommandRouter implements CommandRouter {
                                 MapBuildingSession mapSession,
                                 GraphPersistenceService graphPersistence,
                                 GraphBuildingServiceFactory graphFactory,
-                                ConnectionPatternParser patternParser) {
+                                ConnectionPatternParser patternParser,
+                                RoomGraphHolder graphHolder) {
         this.chatService      = chatService;
         this.lifelogService   = lifelogService;
         this.claudeClient     = claudeClient;
@@ -55,6 +59,7 @@ public class PrefixCommandRouter implements CommandRouter {
         this.graphPersistence = graphPersistence;
         this.graphFactory     = graphFactory;
         this.patternParser    = patternParser;
+        this.graphHolder      = graphHolder;
     }
 
     @Override
@@ -103,11 +108,10 @@ public class PrefixCommandRouter implements CommandRouter {
                     .map(svc -> new ButlerResponse(svc.getGraph().summary(), sessionId))
                     .orElse(new ButlerResponse("No active mapping session.", sessionId));
             }
-            return graphPersistence.load()
-                .map(graph -> graph.isEmpty()
-                    ? startSession(sessionId)
-                    : new ButlerResponse(graph.summary(), sessionId))
-                .getOrElse(() -> startSession(sessionId));
+            RoomGraph current = graphHolder.get();
+            return current.isEmpty()
+                ? startSession(sessionId)
+                : new ButlerResponse(current.summary(), sessionId);
         }
 
         return parseInto(args, sessionId);
@@ -117,10 +121,12 @@ public class PrefixCommandRouter implements CommandRouter {
         if (message.equalsIgnoreCase(navProps.getMapDoneKeyword())) {
             return mapSession.getService(sessionId)
                 .map(svc -> {
-                    graphPersistence.save(svc.getGraph())
+                    RoomGraph built = svc.getGraph();
+                    graphPersistence.save(built)
+                        .onSuccess(path -> graphHolder.set(built))
                         .onFailure(e -> log.error("Failed to save room graph: {}", e.getMessage(), e));
                     mapSession.end(sessionId);
-                    return new ButlerResponse("Map saved! " + svc.getGraph().summary(), sessionId);
+                    return new ButlerResponse("Map saved! " + built.summary(), sessionId);
                 })
                 .orElse(new ButlerResponse("No active mapping session.", sessionId));
         }

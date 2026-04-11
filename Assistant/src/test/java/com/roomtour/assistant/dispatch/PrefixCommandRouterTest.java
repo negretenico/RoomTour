@@ -13,6 +13,7 @@ import com.roomtour.assistant.navigation.ConnectionPatternParser;
 import com.roomtour.assistant.navigation.GraphBuildingServiceFactory;
 import com.roomtour.assistant.navigation.GraphPersistenceService;
 import com.roomtour.assistant.navigation.MapBuildingSession;
+import com.roomtour.assistant.navigation.RoomGraphHolder;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -34,6 +35,7 @@ class PrefixCommandRouterTest {
     @Mock GraphPersistenceService graphPersistence;
     @Mock GraphBuildingServiceFactory graphFactory;
     @Mock ConnectionPatternParser patternParser;
+    @Mock RoomGraphHolder graphHolder;
 
     private PrefixCommandRouter router;
 
@@ -44,7 +46,7 @@ class PrefixCommandRouterTest {
         butlerProps.setUserName("Nico");
         router = new PrefixCommandRouter(chatService, lifelogService, claudeClient, butlerProps,
                                          new NavigationProperties(), mapSession, graphPersistence,
-                                         graphFactory, patternParser);
+                                         graphFactory, patternParser, graphHolder);
     }
 
     @Test
