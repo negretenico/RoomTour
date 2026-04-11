@@ -15,6 +15,7 @@ import com.roomtour.assistant.navigation.ConnectionPatternParser;
 import com.roomtour.assistant.navigation.GraphBuildingServiceFactory;
 import com.roomtour.assistant.navigation.GraphPersistenceService;
 import com.roomtour.assistant.navigation.MapBuildingSession;
+import com.roomtour.assistant.navigation.PathfindingService;
 import com.roomtour.assistant.navigation.RoomGraphHolder;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
@@ -77,9 +78,10 @@ public class AssistantConfig {
                                        GraphPersistenceService graphPersistence,
                                        GraphBuildingServiceFactory graphFactory,
                                        ConnectionPatternParser patternParser,
-                                       RoomGraphHolder graphHolder) {
+                                       RoomGraphHolder graphHolder,
+                                       PathfindingService pathfinder) {
         return new PrefixCommandRouter(chatService, lifelogService, claudeClient, props, navProps,
                                        mapSession, graphPersistence, graphFactory, patternParser,
-                                       graphHolder);
+                                       graphHolder, pathfinder);
     }
 }

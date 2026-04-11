@@ -13,12 +13,14 @@ import com.roomtour.assistant.navigation.ConnectionPatternParser;
 import com.roomtour.assistant.navigation.GraphBuildingServiceFactory;
 import com.roomtour.assistant.navigation.GraphPersistenceService;
 import com.roomtour.assistant.navigation.MapBuildingSession;
+import com.roomtour.assistant.navigation.PathfindingService;
 import com.roomtour.assistant.navigation.RoomGraph;
 import com.roomtour.assistant.navigation.RoomGraphHolder;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * Routes requests by prefix: messages starting with '/' are dispatched as commands
@@ -39,6 +41,7 @@ public class PrefixCommandRouter implements CommandRouter {
     private final GraphBuildingServiceFactory graphFactory;
     private final ConnectionPatternParser patternParser;
     private final RoomGraphHolder graphHolder;
+    private final PathfindingService pathfinder;
 
     public PrefixCommandRouter(ChatService<ButlerResponse, ButlerRequest> chatService,
                                 LifelogService lifelogService,
@@ -49,7 +52,8 @@ public class PrefixCommandRouter implements CommandRouter {
                                 GraphPersistenceService graphPersistence,
                                 GraphBuildingServiceFactory graphFactory,
                                 ConnectionPatternParser patternParser,
-                                RoomGraphHolder graphHolder) {
+                                RoomGraphHolder graphHolder,
+                                PathfindingService pathfinder) {
         this.chatService      = chatService;
         this.lifelogService   = lifelogService;
         this.claudeClient     = claudeClient;
@@ -60,6 +64,7 @@ public class PrefixCommandRouter implements CommandRouter {
         this.graphFactory     = graphFactory;
         this.patternParser    = patternParser;
         this.graphHolder      = graphHolder;
+        this.pathfinder       = pathfinder;
     }
 
     @Override
@@ -81,6 +86,7 @@ public class PrefixCommandRouter implements CommandRouter {
             case "/add-note"    -> addNote(message, sessionId);
             case "/where-am-i"  -> whereAmI(request.room(), sessionId);
             case "/map"         -> map(message, sessionId);
+            case "/navigate"    -> navigate(message, request.room(), sessionId);
             case "/commands"    -> commands(sessionId);
             default             -> unknown(commandToken(message), sessionId);
         };
@@ -179,8 +185,30 @@ public class PrefixCommandRouter implements CommandRouter {
         return new ButlerResponse("Got it, I've noted: \"" + note + "\"", sessionId);
     }
 
+    // --- /navigate ------------------------------------------------------
+
+    private ButlerResponse navigate(String message, String currentRoom, String sessionId) {
+        String target = message.substring("/navigate".length()).strip();
+        if (target.isBlank()) {
+            return new ButlerResponse("Usage: /navigate <room name>", sessionId);
+        }
+        if (graphHolder.get().isEmpty()) {
+            return new ButlerResponse("No map yet. Use /map to start building your home map.", sessionId);
+        }
+        if (currentRoom == null || currentRoom.isBlank() || currentRoom.equals("unknown")) {
+            return new ButlerResponse("I don't know where you are right now.", sessionId);
+        }
+        AtomicReference<String> errorMsg = new AtomicReference<>("Could not find a path to " + target + ".");
+        return pathfinder.findPath(currentRoom, target)
+            .map(path -> new ButlerResponse("Go: " + String.join(" \u2192 ", path), sessionId))
+            .onFailure(e -> errorMsg.set(e.getMessage()))
+            .getOrElse(() -> new ButlerResponse(errorMsg.get(), sessionId));
+    }
+
+    // --- existing commands ----------------------------------------------
+
     private ButlerResponse commands(String sessionId) {
-        String list = "/commands | /where-am-i | /whats-new | /brief | /add-note <text> | /map [description]";
+        String list = "/commands | /where-am-i | /whats-new | /brief | /add-note <text> | /map [description] | /navigate <room>";
         return new ButlerResponse(list, sessionId);
     }
 
