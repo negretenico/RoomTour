@@ -8,6 +8,10 @@ import com.roomtour.assistant.config.ButlerProperties;
 import com.roomtour.assistant.core.model.ButlerRequest;
 import com.roomtour.assistant.core.model.ButlerResponse;
 import com.roomtour.assistant.lifelog.LifelogService;
+import com.roomtour.assistant.navigation.ConnectionPatternParser;
+import com.roomtour.assistant.navigation.GraphBuildingServiceFactory;
+import com.roomtour.assistant.navigation.GraphPersistenceService;
+import com.roomtour.assistant.navigation.MapBuildingSession;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -25,6 +29,10 @@ class PrefixCommandRouterTest {
     @Mock ChatService<ButlerResponse, ButlerRequest> chatService;
     @Mock LifelogService lifelogService;
     @Mock ClaudeClient claudeClient;
+    @Mock MapBuildingSession mapSession;
+    @Mock GraphPersistenceService graphPersistence;
+    @Mock GraphBuildingServiceFactory graphFactory;
+    @Mock ConnectionPatternParser patternParser;
 
     private PrefixCommandRouter router;
 
@@ -33,7 +41,8 @@ class PrefixCommandRouterTest {
         ButlerProperties props = new ButlerProperties();
         props.setName("Jeeves");
         props.setUserName("Nico");
-        router = new PrefixCommandRouter(chatService, lifelogService, claudeClient, props);
+        router = new PrefixCommandRouter(chatService, lifelogService, claudeClient, props,
+                                         mapSession, graphPersistence, graphFactory, patternParser);
     }
 
     @Test
