@@ -2,6 +2,7 @@ package com.roomtour.voice;
 
 import com.roomtour.assistant.core.model.ButlerRequest;
 import com.roomtour.assistant.core.model.ButlerResponse;
+import com.roomtour.assistant.core.model.CurrentRoomRepository;
 import com.roomtour.assistant.dispatch.CommandRouter;
 import com.roomtour.voice.stt.MicCapture;
 import com.roomtour.voice.stt.SpeechToText;
@@ -26,11 +27,12 @@ import java.util.UUID;
 @ConditionalOnProperty(prefix = "butler.voice", name = "enabled", havingValue = "true")
 public class VoiceLoop {
 
-    private final MicCapture    micCapture;
-    private final SpeechToText  stt;
-    private final CommandRouter commandRouter;
-    private final TextToSpeech  tts;
-    private final AudioPlayer   audioPlayer;
+    private final MicCapture            micCapture;
+    private final SpeechToText          stt;
+    private final CommandRouter         commandRouter;
+    private final TextToSpeech          tts;
+    private final AudioPlayer           audioPlayer;
+    private final CurrentRoomRepository roomRepository;
 
     private final String sessionId = UUID.randomUUID().toString();
 
@@ -41,12 +43,14 @@ public class VoiceLoop {
                      SpeechToText stt,
                      CommandRouter commandRouter,
                      TextToSpeech tts,
-                     AudioPlayer audioPlayer) {
-        this.micCapture    = micCapture;
-        this.stt           = stt;
-        this.commandRouter = commandRouter;
-        this.tts           = tts;
-        this.audioPlayer   = audioPlayer;
+                     AudioPlayer audioPlayer,
+                     CurrentRoomRepository roomRepository) {
+        this.micCapture     = micCapture;
+        this.stt            = stt;
+        this.commandRouter  = commandRouter;
+        this.tts            = tts;
+        this.audioPlayer    = audioPlayer;
+        this.roomRepository = roomRepository;
     }
 
     @EventListener(ApplicationReadyEvent.class)
@@ -71,7 +75,7 @@ public class VoiceLoop {
                     .flatMap(stt::transcribe)
                     .onSuccess(transcript -> log.info("[STT] Transcribed: \"{}\"", transcript))
                     .map(transcript -> commandRouter.route(
-                            new ButlerRequest(transcript, "unknown", sessionId)))
+                            new ButlerRequest(transcript, roomRepository.getCurrentRoom(sessionId), sessionId)))
                     .onSuccess(response -> log.info("[Brain] Response: \"{}\"", response.response()))
                     .map(ButlerResponse::response)
                     .flatMap(tts::synthesize)

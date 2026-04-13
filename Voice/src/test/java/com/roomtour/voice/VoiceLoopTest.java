@@ -3,6 +3,7 @@ package com.roomtour.voice;
 import com.common.functionico.risky.Try;
 import com.roomtour.assistant.core.model.ButlerRequest;
 import com.roomtour.assistant.core.model.ButlerResponse;
+import com.roomtour.assistant.core.model.CurrentRoomRepository;
 import com.roomtour.assistant.dispatch.CommandRouter;
 import com.roomtour.voice.stt.MicCapture;
 import com.roomtour.voice.stt.SpeechToText;
@@ -23,11 +24,12 @@ import static org.mockito.Mockito.*;
 @ExtendWith(MockitoExtension.class)
 class VoiceLoopTest {
 
-    @Mock MicCapture    micCapture;
-    @Mock SpeechToText  stt;
-    @Mock CommandRouter commandRouter;
-    @Mock TextToSpeech  tts;
-    @Mock AudioPlayer   audioPlayer;
+    @Mock MicCapture             micCapture;
+    @Mock SpeechToText           stt;
+    @Mock CommandRouter          commandRouter;
+    @Mock TextToSpeech           tts;
+    @Mock AudioPlayer            audioPlayer;
+    @Mock CurrentRoomRepository  roomRepository;
 
     @Test
     void fullPipelineFlowsFromMicToSpeaker() throws InterruptedException {
@@ -43,7 +45,7 @@ class VoiceLoopTest {
         doAnswer(inv -> { played.countDown(); return null; })
                 .when(audioPlayer).play(outputChunk);
 
-        VoiceLoop loop = new VoiceLoop(micCapture, stt, commandRouter, tts, audioPlayer);
+        VoiceLoop loop = new VoiceLoop(micCapture, stt, commandRouter, tts, audioPlayer, roomRepository);
         loop.start();
 
         assertThat(played.await(5, TimeUnit.SECONDS)).isTrue();
@@ -61,7 +63,7 @@ class VoiceLoopTest {
             return Try.of(() -> { throw new RuntimeException("mic error"); });
         });
 
-        VoiceLoop loop = new VoiceLoop(micCapture, stt, commandRouter, tts, audioPlayer);
+        VoiceLoop loop = new VoiceLoop(micCapture, stt, commandRouter, tts, audioPlayer, roomRepository);
         loop.start();
 
         assertThat(secondAttempt.await(5, TimeUnit.SECONDS)).isTrue();
