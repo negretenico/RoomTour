@@ -67,9 +67,9 @@ public class RoomGraph {
         return sb.toString();
     }
 
-    /** Normalizes a room name: lowercase and strips a leading article. */
+    /** Normalizes a room name: lowercase, hyphens to spaces, strips a leading article. */
     public static String normalize(String name) {
-        String trimmed = name.strip().toLowerCase();
+        String trimmed = name.strip().toLowerCase().replace('-', ' ');
         for (String article : ARTICLES) {
             if (trimmed.startsWith(article + " ")) {
                 return trimmed.substring(article.length()).strip();

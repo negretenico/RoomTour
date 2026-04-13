@@ -1,6 +1,5 @@
 package com.roomtour.assistant.config;
 
-import com.roomtour.assistant.ai.ClaudeClient;
 import com.roomtour.assistant.chat.ChatService;
 import com.roomtour.assistant.core.model.ButlerRequest;
 import com.roomtour.assistant.core.model.ButlerResponse;
@@ -9,14 +8,11 @@ import com.roomtour.assistant.core.model.HealthData;
 import com.roomtour.assistant.core.model.WeatherSnapshot;
 import com.roomtour.assistant.dispatch.CommandRouter;
 import com.roomtour.assistant.dispatch.PrefixCommandRouter;
+import com.roomtour.assistant.dispatch.command.ButlerCommand;
+import com.roomtour.assistant.dispatch.command.MapCommand;
+import com.roomtour.assistant.core.model.CurrentRoomRepository;
 import com.roomtour.assistant.lifelog.InMemoryLifelog;
 import com.roomtour.assistant.lifelog.LifelogService;
-import com.roomtour.assistant.navigation.ConnectionPatternParser;
-import com.roomtour.assistant.navigation.GraphBuildingServiceFactory;
-import com.roomtour.assistant.navigation.GraphPersistenceService;
-import com.roomtour.assistant.navigation.MapBuildingSession;
-import com.roomtour.assistant.navigation.PathfindingService;
-import com.roomtour.assistant.navigation.RoomGraphHolder;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
@@ -42,6 +38,12 @@ public class AssistantConfig {
 
     public AssistantConfig(ButlerProperties props) {
         this.props = props;
+    }
+
+    @Bean
+    @ConditionalOnMissingBean(CurrentRoomRepository.class)
+    public CurrentRoomRepository currentRoomRepository() {
+        return sessionId -> "unknown";
     }
 
     @Bean
@@ -71,17 +73,8 @@ public class AssistantConfig {
     @Bean
     @ConditionalOnMissingBean(CommandRouter.class)
     public CommandRouter commandRouter(ChatService<ButlerResponse, ButlerRequest> chatService,
-                                       LifelogService lifelogService,
-                                       ClaudeClient claudeClient,
-                                       NavigationProperties navProps,
-                                       MapBuildingSession mapSession,
-                                       GraphPersistenceService graphPersistence,
-                                       GraphBuildingServiceFactory graphFactory,
-                                       ConnectionPatternParser patternParser,
-                                       RoomGraphHolder graphHolder,
-                                       PathfindingService pathfinder) {
-        return new PrefixCommandRouter(chatService, lifelogService, claudeClient, props, navProps,
-                                       mapSession, graphPersistence, graphFactory, patternParser,
-                                       graphHolder, pathfinder);
+                                       List<ButlerCommand> commands,
+                                       MapCommand mapCommand) {
+        return new PrefixCommandRouter(chatService, commands, mapCommand);
     }
 }
