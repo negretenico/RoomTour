@@ -5,6 +5,7 @@ import com.roomtour.assistant.core.model.ButlerResponse;
 import com.roomtour.assistant.core.model.CurrentRoomRepository;
 import com.roomtour.assistant.dispatch.CommandRouter;
 import com.roomtour.voice.stt.MicCapture;
+import com.roomtour.voice.stt.SilentFrameException;
 import com.roomtour.voice.stt.SpeechToText;
 import com.roomtour.voice.tts.AudioPlayer;
 import com.roomtour.voice.tts.TextToSpeech;
@@ -81,7 +82,10 @@ public class VoiceLoop {
                     .flatMap(tts::synthesize)
                     .onSuccess(chunk -> log.info("[TTS] Synthesized {} bytes, playing", chunk.pcm().length))
                     .onSuccess(audioPlayer::play)
-                    .onFailure(e -> log.warn("Voice loop iteration failed: {}", e.getMessage()));
+                    .onFailure(e -> {
+                        if (e instanceof SilentFrameException) log.debug("Silent frame — skipping TTS");
+                        else log.warn("Voice loop iteration failed: {}", e.getMessage());
+                    });
         }
         log.info("VoiceLoop exited");
     }

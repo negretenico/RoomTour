@@ -9,7 +9,8 @@ public record VoiceProperties(
         @DefaultValue("http://localhost:8000")    String  whisperUrl,
         @DefaultValue("espeak-ng")                String  espeakBinary,
         @DefaultValue("800")                      int     silenceDurationMs,
-        @DefaultValue("200")                      int     silenceThreshold,
+        @DefaultValue("500")                      int     silenceThreshold,
         @DefaultValue("15000")                    int     maxDurationMs,
-        @DefaultValue("16000")                    int     sampleRateHz
+        @DefaultValue("16000")                    int     sampleRateHz,
+        @DefaultValue("-1.0")                     double  logprobThreshold
 ) {}

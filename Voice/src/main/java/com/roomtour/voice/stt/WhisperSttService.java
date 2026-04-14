@@ -2,6 +2,7 @@ package com.roomtour.voice.stt;
 
 import com.common.functionico.risky.Try;
 import com.roomtour.voice.AudioChunk;
+import com.roomtour.voice.VoiceProperties;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.http.MediaType;
@@ -21,10 +22,12 @@ import java.nio.ByteOrder;
 @ConditionalOnProperty(prefix = "butler.voice", name = "enabled", havingValue = "true")
 public class WhisperSttService implements SpeechToText {
 
-    private final WebClient whisperWebClient;
+    private final WebClient        whisperWebClient;
+    private final VoiceProperties  props;
 
-    public WhisperSttService(WebClient whisperWebClient) {
+    public WhisperSttService(WebClient whisperWebClient, VoiceProperties props) {
         this.whisperWebClient = whisperWebClient;
+        this.props            = props;
     }
 
     @Override
@@ -35,6 +38,7 @@ public class WhisperSttService implements SpeechToText {
                 .filename("audio.wav")
                 .contentType(MediaType.valueOf("audio/wav"));
             body.part("model", "whisper-1");
+            body.part("response_format", "verbose_json");
 
             WhisperResponse response = whisperWebClient.post()
                     .uri("/v1/audio/transcriptions")
@@ -44,10 +48,21 @@ public class WhisperSttService implements SpeechToText {
                     .bodyToMono(WhisperResponse.class)
                     .block();
 
-            String text = response != null ? response.text() : "";
-            log.debug("Transcribed: {}", text);
-            return text;
-        }).onFailure(e -> log.warn("Whisper transcription failed: {}", e.getMessage(), e));
+            if (response == null || response.text().isBlank()) {
+                throw new SilentFrameException("blank transcript");
+            }
+            if (response.avgLogprob() < props.logprobThreshold()) {
+                log.debug("Hallucination rejected — avg_logprob={}", response.avgLogprob());
+                throw new SilentFrameException("hallucination — avg_logprob=" + response.avgLogprob());
+            }
+
+            log.debug("Transcribed: {}", response.text());
+            return response.text();
+        }).onFailure(e -> {
+            if (!(e instanceof SilentFrameException)) {
+                log.warn("Whisper transcription failed: {}", e.getMessage(), e);
+            }
+        });
     }
 
     private byte[] toWav(AudioChunk chunk) {
