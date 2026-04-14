@@ -8,6 +8,7 @@ butler:
     whisper-url: http://localhost:8000
     espeak-binary: "C:\\Program Files\\eSpeak NG\\espeak-ng.exe"
     silence-duration-ms: 800
-    silence-threshold: 200
+    silence-threshold: 500
+    logprob-threshold: -1.0
     max-duration-ms: 15000
     sample-rate-hz: 16000

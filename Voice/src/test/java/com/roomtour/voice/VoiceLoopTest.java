@@ -6,6 +6,7 @@ import com.roomtour.assistant.core.model.ButlerResponse;
 import com.roomtour.assistant.core.model.CurrentRoomRepository;
 import com.roomtour.assistant.dispatch.CommandRouter;
 import com.roomtour.voice.stt.MicCapture;
+import com.roomtour.voice.stt.SilentFrameException;
 import com.roomtour.voice.stt.SpeechToText;
 import com.roomtour.voice.tts.AudioPlayer;
 import com.roomtour.voice.tts.TextToSpeech;
@@ -52,6 +53,26 @@ class VoiceLoopTest {
         loop.stop();
 
         verify(audioPlayer, atLeastOnce()).play(outputChunk);
+    }
+
+    @Test
+    void silentFrameDoesNotReachCommandRouter() throws InterruptedException {
+        AudioChunk inputChunk    = new AudioChunk(new byte[]{1, 2, 3, 4}, 16000);
+        CountDownLatch attempted = new CountDownLatch(2);
+
+        when(micCapture.capture()).thenReturn(Try.of(() -> inputChunk));
+        when(stt.transcribe(inputChunk)).thenAnswer(inv -> {
+            attempted.countDown();
+            return Try.of(() -> { throw new SilentFrameException("blank transcript"); });
+        });
+
+        VoiceLoop loop = new VoiceLoop(micCapture, stt, commandRouter, tts, audioPlayer, roomRepository);
+        loop.start();
+
+        assertThat(attempted.await(5, TimeUnit.SECONDS)).isTrue();
+        loop.stop();
+
+        verifyNoInteractions(commandRouter, tts, audioPlayer);
     }
 
     @Test
