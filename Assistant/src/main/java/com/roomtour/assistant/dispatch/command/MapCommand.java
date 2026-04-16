@@ -7,6 +7,7 @@ import com.roomtour.assistant.navigation.BuildMode;
 import java.util.Optional;
 import java.util.regex.Pattern;
 import com.roomtour.assistant.navigation.ConnectionPatternParser;
+import com.roomtour.assistant.navigation.GraphBuildingService;
 import com.roomtour.assistant.navigation.GraphBuildingServiceFactory;
 import com.roomtour.assistant.navigation.GraphPersistenceService;
 import com.roomtour.assistant.navigation.MapBuildingSession;
@@ -52,8 +53,8 @@ public class MapCommand implements ButlerCommand {
     public ButlerResponse intentExecute(String rawMessage, String sessionId) {
         java.util.regex.Matcher m = INTENT.matcher(rawMessage);
         if (m.find()) {
-            String trigger = m.group(1).strip();
-            String rest    = rawMessage.substring(m.end()).strip();
+            String trigger  = m.group(1).strip();
+            String rest     = stripPunctuation(rawMessage.substring(m.end()));
 
             if (!rest.isBlank()) {
                 // "map kitchen connects to bathroom" — parse inline
@@ -61,10 +62,20 @@ public class MapCommand implements ButlerCommand {
             }
 
             // Any map trigger ("map", "start map", "build map" …) always opens a session.
+            // Seed with the existing persisted graph so prior rooms are not lost.
             // The slash command /map retains the original show-summary behaviour.
-            log.info("[MAP] session={} starting map session via voice intent '{}'", sessionId, trigger);
-            mapSession.start(sessionId, graphFactory.create(BuildMode.VOICE));
-            return new ButlerResponse(navProps.getMapPrompt(), sessionId);
+            RoomGraph existing = graphHolder.get();
+            GraphBuildingService service = existing.isEmpty()
+                ? graphFactory.create(BuildMode.VOICE)
+                : graphFactory.createFrom(existing);
+            log.info("[MAP] session={} starting map session via '{}' — seeding with {} existing room(s)",
+                sessionId, trigger, existing.getRooms().size());
+            mapSession.start(sessionId, service);
+            String prompt = existing.isEmpty()
+                ? navProps.getMapPrompt()
+                : "Loaded " + existing.getRooms().size() + " room(s): " + String.join(", ", existing.getRooms().values())
+                  + ". Keep describing connections, or say 'done' when finished.";
+            return new ButlerResponse(prompt, sessionId);
         }
         return execute(token(), sessionId);
     }
@@ -112,10 +123,15 @@ public class MapCommand implements ButlerCommand {
     private String stripMapPrefix(String message) {
         java.util.regex.Matcher m = INTENT.matcher(message);
         if (m.find() && m.start() == 0) {
-            String rest = message.substring(m.end()).strip();
+            String rest = stripPunctuation(message.substring(m.end()));
             return rest.isBlank() ? message : rest;
         }
         return message;
+    }
+
+    /** Strips leading/trailing whitespace and punctuation — compensates for Whisper adding periods. */
+    private String stripPunctuation(String s) {
+        return s.replaceAll("^[\\p{Punct}\\s]+|[\\p{Punct}\\s]+$", "").strip();
     }
 
     /**

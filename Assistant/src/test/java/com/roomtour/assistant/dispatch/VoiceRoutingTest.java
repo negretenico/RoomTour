@@ -15,6 +15,8 @@ import com.roomtour.assistant.dispatch.command.WhatsNewCommand;
 import com.roomtour.assistant.dispatch.command.WhereAmICommand;
 import com.roomtour.assistant.lifelog.LifelogService;
 import com.roomtour.assistant.navigation.ConnectionPatternParser;
+import com.roomtour.assistant.navigation.GraphBuildingService;
+import com.roomtour.assistant.navigation.VoiceGraphBuilder;
 import com.roomtour.assistant.navigation.GraphBuildingServiceFactory;
 import com.roomtour.assistant.navigation.GraphPersistenceService;
 import com.roomtour.assistant.navigation.MapBuildingSession;
@@ -33,6 +35,8 @@ import org.mockito.quality.Strictness;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import org.mockito.ArgumentCaptor;
+
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
@@ -134,9 +138,10 @@ class VoiceRoutingTest {
         existing.addRoom("bedroom");
         when(mapSession.isActive(SESSION)).thenReturn(false);
         when(graphHolder.get()).thenReturn(existing);
+        when(graphFactory.createFrom(existing)).thenReturn(new VoiceGraphBuilder(new RoomGraph(existing)));
 
         ButlerResponse response = router.route(new ButlerRequest("start map", null, SESSION));
-        assertThat(response.response()).contains("Start describing your home");
+        assertThat(response.response()).contains("Loaded 1 room(s)").contains("bedroom");
         verify(mapSession).start(eq(SESSION), any());
     }
 
@@ -146,6 +151,33 @@ class VoiceRoutingTest {
         when(graphHolder.get()).thenReturn(new RoomGraph());
 
         ButlerResponse response = router.route(new ButlerRequest("map", null, SESSION));
+        assertThat(response.response()).contains("Start describing your home");
+        verify(mapSession).start(eq(SESSION), any());
+    }
+
+    @Test
+    void mapSessionSeedsFromPersistedGraphSoRoomsAreNotLost() {
+        RoomGraph persisted = new RoomGraph();
+        persisted.addConnection("kitchen", "living room", 1.0);
+        when(graphHolder.get()).thenReturn(persisted);
+        when(mapSession.isActive(SESSION)).thenReturn(false);
+        when(graphFactory.createFrom(persisted)).thenReturn(new VoiceGraphBuilder(new RoomGraph(persisted)));
+
+        router.route(new ButlerRequest("map", null, SESSION));
+
+        ArgumentCaptor<GraphBuildingService> captor = ArgumentCaptor.forClass(GraphBuildingService.class);
+        verify(mapSession).start(eq(SESSION), captor.capture());
+        assertThat(captor.getValue().getGraph().getRooms()).containsKey("kitchen");
+        assertThat(captor.getValue().getGraph().getRooms()).containsKey("living room");
+    }
+
+    @Test
+    void startMapWithWhisperPeriodStartsSession() {
+        // Whisper transcribes "start map" as "Start map." — the period must not be treated as content
+        when(mapSession.isActive(SESSION)).thenReturn(false);
+        when(graphHolder.get()).thenReturn(new RoomGraph());
+
+        ButlerResponse response = router.route(new ButlerRequest("Start map.", null, SESSION));
         assertThat(response.response()).contains("Start describing your home");
         verify(mapSession).start(eq(SESSION), any());
     }
