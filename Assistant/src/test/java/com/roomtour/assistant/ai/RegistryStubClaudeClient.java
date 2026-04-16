@@ -3,33 +3,26 @@ package com.roomtour.assistant.ai;
 import com.common.functionico.risky.Try;
 import com.roomtour.assistant.core.model.Message;
 
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 /**
  * Test-only stub that returns different canned responses based on the last user message.
- * Register utterance → response pairs before the test runs. Unregistered utterances fall
- * back to the default response.
- *
- * <pre>{@code
- * var stub = new RegistryStubClaudeClient("Good day, sir.")
- *     .register("Hello", "Good morning!")
- *     .register("what's the weather", "Sunny, 72°F.");
- * }</pre>
+ * Construct with a default response and an optional registry map.
+ * Utterances not in the registry fall back to the default.
  */
 public class RegistryStubClaudeClient implements ClaudeClient {
 
     private final String defaultResponse;
-    private final Map<String, String> registry = new HashMap<>();
+    private final Map<String, String> registry;
 
     public RegistryStubClaudeClient(String defaultResponse) {
-        this.defaultResponse = defaultResponse;
+        this(defaultResponse, Map.of());
     }
 
-    public RegistryStubClaudeClient register(String utterance, String response) {
-        registry.put(utterance, response);
-        return this;
+    public RegistryStubClaudeClient(String defaultResponse, Map<String, String> registry) {
+        this.defaultResponse = defaultResponse;
+        this.registry        = registry;
     }
 
     @Override

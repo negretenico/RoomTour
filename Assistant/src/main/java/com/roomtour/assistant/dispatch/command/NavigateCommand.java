@@ -39,13 +39,10 @@ public class NavigateCommand implements ButlerCommand {
     @Override
     public ButlerResponse intentExecute(String rawMessage, String sessionId) {
         Matcher m = INTENT.matcher(rawMessage.strip());
-        if (m.find()) {
-            String destination = m.group(2).strip();
-            String msg = destination.isBlank() ? token() : token() + " " + destination;
-            log.info("[NAVIGATE] intent matched destination='{}'", destination);
-            return execute(msg, sessionId);
-        }
-        return execute(token(), sessionId);
+        if (!m.find()) return execute(token(), sessionId);
+        String destination = m.group(2).strip();
+        log.info("[NAVIGATE] intent matched destination='{}'", destination);
+        return execute(destination.isBlank() ? token() : token() + " " + destination, sessionId);
     }
 
     @Override

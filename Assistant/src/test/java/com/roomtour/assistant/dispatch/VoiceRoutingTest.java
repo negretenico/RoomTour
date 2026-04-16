@@ -33,6 +33,7 @@ import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
 
 import java.util.List;
+import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import org.mockito.ArgumentCaptor;
@@ -70,8 +71,10 @@ class VoiceRoutingTest {
 
     @BeforeEach
     void setUp() {
-        stubClient = new RegistryStubClaudeClient("Good morning, sir. How may I be of assistance?")
-            .register("Hello", "Good day! How can I help you?");
+        stubClient = new RegistryStubClaudeClient(
+            "Good morning, sir. How may I be of assistance?",
+            Map.of("Hello", "Good day! How can I help you?")
+        );
 
         when(lifelogService.formatForPrompt()).thenReturn("");
 

@@ -6,8 +6,7 @@ import com.roomtour.assistant.core.model.ButlerResponse;
 import com.roomtour.assistant.dispatch.command.ButlerCommand;
 import com.roomtour.assistant.dispatch.command.MapCommand;
 import com.common.functionico.value.Maybe;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.List;
 import java.util.Optional;
@@ -19,9 +18,8 @@ import java.util.stream.Collectors;
  * {@link ButlerCommand}. Free-text delegates to the conversation service — unless the
  * session is in MAP_BUILDING mode, in which case it is forwarded to {@link MapCommand}.
  */
+@Slf4j
 public class PrefixCommandRouter implements CommandRouter {
-
-    private static final Logger log = LoggerFactory.getLogger(PrefixCommandRouter.class);
 
     private final ChatService<ButlerResponse, ButlerRequest> chatService;
     private final List<ButlerCommand> commands;
@@ -45,12 +43,11 @@ public class PrefixCommandRouter implements CommandRouter {
         }
 
         if (!message.startsWith("/")) {
-            Optional<ButlerResponse> intentMatch = matchIntent(message, sessionId);
-            if (intentMatch.isPresent()) {
-                return intentMatch.get();
-            }
-            log.info("[ROUTER] no intent match for '{}' — delegating to ChatService", message);
-            return chatService.chat(request);
+            return matchIntent(message, sessionId)
+                .orElseGet(() -> {
+                    log.info("[ROUTER] no intent match for '{}' — delegating to ChatService", message);
+                    return chatService.chat(request);
+                });
         }
 
         String token = commandToken(message);
@@ -63,21 +60,31 @@ public class PrefixCommandRouter implements CommandRouter {
         return commands.stream()
             .filter(c -> c.token().equals(token))
             .findFirst()
-            .map(c -> {
-                log.info("[ROUTER] prefix match '{}' → {}", token, c.getClass().getSimpleName());
-                return c.execute(message, sessionId);
-            })
+            .map(c -> dispatchPrefix(c, token, message, sessionId))
             .orElseGet(() -> new ButlerResponse("Unknown command: " + token, sessionId));
     }
 
     private Optional<ButlerResponse> matchIntent(String message, String sessionId) {
         return commands.stream()
-            .filter(c -> c.intentPattern().map(p -> p.matcher(message).find()).orElse(false))
+            .filter(c -> matchesIntent(c, message))
             .findFirst()
-            .map(c -> {
-                log.info("[ROUTER] intent match '{}' → {}", message, c.getClass().getSimpleName());
-                return c.intentExecute(message, sessionId);
-            });
+            .map(c -> dispatchIntent(c, message, sessionId));
+    }
+
+    private boolean matchesIntent(ButlerCommand command, String message) {
+        return command.intentPattern()
+            .map(p -> p.matcher(message).find())
+            .orElse(false);
+    }
+
+    private ButlerResponse dispatchIntent(ButlerCommand command, String message, String sessionId) {
+        log.info("[ROUTER] intent match '{}' → {}", message, command.getClass().getSimpleName());
+        return command.intentExecute(message, sessionId);
+    }
+
+    private ButlerResponse dispatchPrefix(ButlerCommand command, String token, String message, String sessionId) {
+        log.info("[ROUTER] prefix match '{}' → {}", token, command.getClass().getSimpleName());
+        return command.execute(message, sessionId);
     }
 
     private String resolveSessionId(String sessionId) {
