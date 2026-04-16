@@ -13,7 +13,7 @@ import java.util.regex.Pattern;
 public class WhatsNewCommand implements ButlerCommand {
 
     private static final Pattern INTENT = Pattern.compile(
-        "(?i)(what'?s\\s+new|whats\\s+new|any\\s+news|what'?s\\s+happening|what'?s\\s+going\\s+on)"
+        "(?i)(what'?s\\s+new|whats\\s+new|any\\s+news|what'?s\\s+happening|what'?s\\s+going\\s+on|weather|forecast)"
     );
 
     private final LifelogService lifelogService;

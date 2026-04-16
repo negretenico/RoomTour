@@ -34,6 +34,7 @@ import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -128,6 +129,57 @@ class VoiceRoutingTest {
     }
 
     @Test
+    void startMapForceStartsSessionEvenWhenGraphExists() {
+        RoomGraph existing = new RoomGraph();
+        existing.addRoom("bedroom");
+        when(mapSession.isActive(SESSION)).thenReturn(false);
+        when(graphHolder.get()).thenReturn(existing);
+
+        ButlerResponse response = router.route(new ButlerRequest("start map", null, SESSION));
+        assertThat(response.response()).contains("Start describing your home");
+        verify(mapSession).start(eq(SESSION), any());
+    }
+
+    @Test
+    void mapAloneAlsoStartsSession() {
+        when(mapSession.isActive(SESSION)).thenReturn(false);
+        when(graphHolder.get()).thenReturn(new RoomGraph());
+
+        ButlerResponse response = router.route(new ButlerRequest("map", null, SESSION));
+        assertThat(response.response()).contains("Start describing your home");
+        verify(mapSession).start(eq(SESSION), any());
+    }
+
+    @Test
+    void mapPrefixInActiveSessionStrippedBeforeParsing() {
+        VoiceGraphBuilder builder = new VoiceGraphBuilder(new RoomGraph());
+        when(mapSession.isActive(MAP_SESSION)).thenReturn(true);
+        when(mapSession.getService(MAP_SESSION)).thenReturn(Maybe.of(builder));
+
+        router.route(new ButlerRequest("map kitchen connects to living room", null, MAP_SESSION));
+
+        // Room should be "kitchen", not "map kitchen"
+        assertThat(builder.getGraph().getRooms()).containsKey("kitchen");
+        assertThat(builder.getGraph().getRooms()).doesNotContainKey("map kitchen");
+    }
+
+    @Test
+    void doneWithPunctuationCompletesMapSession() {
+        RoomGraph graph = new RoomGraph();
+        graph.addConnection("kitchen", "living room", 1.0);
+        VoiceGraphBuilder builder = new VoiceGraphBuilder(graph);
+
+        when(mapSession.isActive(MAP_SESSION)).thenReturn(true);
+        when(mapSession.getService(MAP_SESSION)).thenReturn(Maybe.of(builder));
+        when(graphPersistence.save(any())).thenReturn(Try.of(() -> "saved"));
+
+        // Whisper often adds a period — this should still complete the session
+        ButlerResponse response = router.route(new ButlerRequest("Done.", null, MAP_SESSION));
+        assertThat(response.response()).contains("Map saved!");
+        verify(mapSession).end(MAP_SESSION);
+    }
+
+    @Test
     void mapWithInlineDescriptionParsesConnectionDirectly() {
         VoiceGraphBuilder builder = new VoiceGraphBuilder(new RoomGraph());
         when(mapSession.isActive(SESSION)).thenReturn(false);
@@ -146,6 +198,27 @@ class VoiceRoutingTest {
         when(roomRepository.getCurrentRoom(SESSION)).thenReturn("bedroom");
         ButlerResponse response = router.route(new ButlerRequest("/where-am-i", null, SESSION));
         assertThat(response.response()).isEqualTo("You are in the bedroom.");
+    }
+
+    @Test
+    void navigateIntentExtractsDestination() {
+        when(graphHolder.get()).thenReturn(new RoomGraph()); // empty → "No map yet" from NavigateCommand
+        ButlerResponse response = router.route(new ButlerRequest("navigate bathroom", null, SESSION));
+        assertThat(response.response()).containsIgnoringCase("map");
+    }
+
+    @Test
+    void goToIntentExtractsDestination() {
+        when(graphHolder.get()).thenReturn(new RoomGraph());
+        ButlerResponse response = router.route(new ButlerRequest("go to the kitchen", null, SESSION));
+        assertThat(response.response()).containsIgnoringCase("map");
+    }
+
+    @Test
+    void weatherIntentRoutesToWhatsNewCommand() {
+        when(lifelogService.formatForPrompt()).thenReturn("Sunny, 72°F.");
+        ButlerResponse response = router.route(new ButlerRequest("weather", null, SESSION));
+        assertThat(response.response()).contains("Sunny, 72°F.");
     }
 
     @Test

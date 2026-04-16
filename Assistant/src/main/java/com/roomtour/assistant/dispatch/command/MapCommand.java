@@ -52,8 +52,19 @@ public class MapCommand implements ButlerCommand {
     public ButlerResponse intentExecute(String rawMessage, String sessionId) {
         java.util.regex.Matcher m = INTENT.matcher(rawMessage);
         if (m.find()) {
-            String rest = rawMessage.substring(m.end()).strip();
-            return rest.isBlank() ? execute(token(), sessionId) : execute(token() + " " + rest, sessionId);
+            String trigger = m.group(1).strip();
+            String rest    = rawMessage.substring(m.end()).strip();
+
+            if (!rest.isBlank()) {
+                // "map kitchen connects to bathroom" — parse inline
+                return execute(token() + " " + rest, sessionId);
+            }
+
+            // Any map trigger ("map", "start map", "build map" …) always opens a session.
+            // The slash command /map retains the original show-summary behaviour.
+            log.info("[MAP] session={} starting map session via voice intent '{}'", sessionId, trigger);
+            mapSession.start(sessionId, graphFactory.create(BuildMode.VOICE));
+            return new ButlerResponse(navProps.getMapPrompt(), sessionId);
         }
         return execute(token(), sessionId);
     }
@@ -77,7 +88,11 @@ public class MapCommand implements ButlerCommand {
 
     /** Called by the router when a session is active and free-text arrives. */
     public ButlerResponse handleFreeText(String message, String sessionId) {
-        if (message.equalsIgnoreCase(navProps.getMapDoneKeyword())) {
+        // Strip a leading map trigger if the user says "map kitchen connects to X"
+        // while already in a map session — prevents "map kitchen" becoming the room name.
+        String normalized = stripMapPrefix(message);
+
+        if (isDoneKeyword(normalized)) {
             return mapSession.getService(sessionId)
                 .map(svc -> {
                     RoomGraph built = svc.getGraph();
@@ -90,7 +105,28 @@ public class MapCommand implements ButlerCommand {
                 })
                 .orElse(new ButlerResponse("No active mapping session.", sessionId));
         }
-        return parseInto(message, sessionId);
+        return parseInto(normalized, sessionId);
+    }
+
+    /** Strips a leading map trigger word (e.g. "map") from a message if present. */
+    private String stripMapPrefix(String message) {
+        java.util.regex.Matcher m = INTENT.matcher(message);
+        if (m.find() && m.start() == 0) {
+            String rest = message.substring(m.end()).strip();
+            return rest.isBlank() ? message : rest;
+        }
+        return message;
+    }
+
+    /**
+     * Checks whether the message is the map-done keyword.
+     * Uses a word-boundary regex so "Done." and "I'm done" both match,
+     * compensating for Whisper punctuation and sentence-level transcripts.
+     */
+    private boolean isDoneKeyword(String message) {
+        String keyword = java.util.regex.Pattern.quote(navProps.getMapDoneKeyword());
+        return java.util.regex.Pattern.compile("(?i)\\b" + keyword + "\\b")
+            .matcher(message).find();
     }
 
     public boolean isSessionActive(String sessionId) {
