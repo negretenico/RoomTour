@@ -14,6 +14,7 @@ import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
 
 import java.util.List;
+import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
@@ -35,6 +36,8 @@ class PrefixCommandRouterTest {
     void setUp() {
         when(commandA.token()).thenReturn("/alpha");
         when(commandB.token()).thenReturn("/beta");
+        when(commandA.intentPattern()).thenReturn(Optional.empty());
+        when(commandB.intentPattern()).thenReturn(Optional.empty());
         router = new PrefixCommandRouter(chatService, List.of(commandA, commandB), mapCommand);
     }
 
@@ -43,7 +46,8 @@ class PrefixCommandRouterTest {
         when(chatService.chat(any())).thenReturn(new ButlerResponse("reply", "s1"));
         router.route(new ButlerRequest("hello", null, "s1"));
         verify(chatService).chat(any());
-        verifyNoInteractions(commandA, commandB);
+        verify(commandA, never()).execute(anyString(), anyString());
+        verify(commandB, never()).execute(anyString(), anyString());
     }
 
     @Test

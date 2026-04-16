@@ -18,6 +18,16 @@ public class RoomGraph {
     /** normalized from → (normalized to → weight), both directions stored */
     private final Map<String, Map<String, Double>> adjacency = new LinkedHashMap<>();
 
+    public RoomGraph() {}
+
+    /** Deep-copies an existing graph so a new editing session doesn't share state. */
+    public RoomGraph(RoomGraph source) {
+        source.rooms.forEach(this.rooms::put);
+        source.adjacency.forEach((from, conns) ->
+            conns.forEach((to, w) ->
+                this.adjacency.computeIfAbsent(from, k -> new LinkedHashMap<>()).put(to, w)));
+    }
+
     public void addRoom(String name) {
         String key = normalize(name);
         rooms.putIfAbsent(key, name.strip());

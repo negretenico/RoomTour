@@ -11,4 +11,9 @@ public class GraphBuildingServiceFactory {
             case EXPLORATION -> new ExplorationGraphBuilder();
         };
     }
+
+    /** Creates a voice builder pre-seeded with a deep copy of an existing graph. */
+    public GraphBuildingService createFrom(RoomGraph existing) {
+        return new VoiceGraphBuilder(new RoomGraph(existing));
+    }
 }

@@ -4,12 +4,21 @@ import com.roomtour.assistant.core.model.ButlerResponse;
 import com.roomtour.assistant.core.model.CurrentRoomRepository;
 import com.roomtour.assistant.navigation.RoomGraphHolder;
 import com.roomtour.assistant.navigation.PathfindingService;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
+import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
+@Slf4j
 @Component
 public class NavigateCommand implements ButlerCommand {
+
+    private static final Pattern INTENT = Pattern.compile(
+        "(?i)\\b(navigate(?:\\s+to)?|go\\s+to|take\\s+me\\s+to)\\b\\s*(.*)"
+    );
 
     private final PathfindingService pathfinder;
     private final RoomGraphHolder graphHolder;
@@ -25,6 +34,16 @@ public class NavigateCommand implements ButlerCommand {
 
     @Override public String token() { return "/navigate"; }
     @Override public String usage() { return "/navigate <room>"; }
+    @Override public Optional<Pattern> intentPattern() { return Optional.of(INTENT); }
+
+    @Override
+    public ButlerResponse intentExecute(String rawMessage, String sessionId) {
+        Matcher m = INTENT.matcher(rawMessage.strip());
+        if (!m.find()) return execute(token(), sessionId);
+        String destination = m.group(2).strip();
+        log.info("[NAVIGATE] intent matched destination='{}'", destination);
+        return execute(destination.isBlank() ? token() : token() + " " + destination, sessionId);
+    }
 
     @Override
     public ButlerResponse execute(String message, String sessionId) {
