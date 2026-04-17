@@ -141,7 +141,7 @@ class VoiceRoutingTest {
         existing.addRoom("bedroom");
         when(mapSession.isActive(SESSION)).thenReturn(false);
         when(graphHolder.get()).thenReturn(existing);
-        when(graphFactory.createFrom(existing)).thenReturn(new VoiceGraphBuilder(new RoomGraph(existing)));
+        when(graphFactory.createFrom(existing)).thenReturn(new VoiceGraphBuilder(RoomGraph.copyOf(existing)));
 
         ButlerResponse response = router.route(new ButlerRequest("start map", null, SESSION));
         assertThat(response.response()).contains("Loaded 1 room(s)").contains("bedroom");
@@ -164,7 +164,7 @@ class VoiceRoutingTest {
         persisted.addConnection("kitchen", "living room", 1.0);
         when(graphHolder.get()).thenReturn(persisted);
         when(mapSession.isActive(SESSION)).thenReturn(false);
-        when(graphFactory.createFrom(persisted)).thenReturn(new VoiceGraphBuilder(new RoomGraph(persisted)));
+        when(graphFactory.createFrom(persisted)).thenReturn(new VoiceGraphBuilder(RoomGraph.copyOf(persisted)));
 
         router.route(new ButlerRequest("map", null, SESSION));
 
