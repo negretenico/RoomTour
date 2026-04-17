@@ -18,6 +18,12 @@ public class RecognitionProperties {
     /** Room label returned by the simulated classifier. */
     private String room = "unknown";
 
+    /** Number of frames in the sliding confidence window. */
+    private int windowSize = 20;
+
+    /** Fraction of window frames a single label must hold to confirm a room update (0.0–1.0). */
+    private double thresholdPercent = 0.80;
+
     /**
      * Per-room configuration used by the YOLO classifier.
      * Key is the room label (e.g. {@code kitchen}, {@code living-room}).

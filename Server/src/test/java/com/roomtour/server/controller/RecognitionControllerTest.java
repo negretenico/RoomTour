@@ -5,6 +5,7 @@ import com.roomtour.recognition.classify.RoomClassifier;
 import com.roomtour.recognition.core.model.DetectedObject;
 import com.roomtour.recognition.core.model.RoomObservation;
 import com.roomtour.recognition.core.model.SidecarPayload;
+import com.roomtour.server.recognition.ClassificationDebounce;
 import com.roomtour.server.session.RoomSessionStore;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -24,13 +25,16 @@ import static org.mockito.Mockito.*;
 class RecognitionControllerTest {
 
     @Mock RoomClassifier roomClassifier;
+    @Mock ClassificationDebounce debounce;
     @Mock RoomSessionStore roomSessionStore;
 
     private RecognitionController controller;
 
     @BeforeEach
     void setUp() {
-        controller = new RecognitionController(roomClassifier, roomSessionStore);
+        controller = new RecognitionController(roomClassifier, debounce, roomSessionStore);
+        // pass-through: debounce returns whatever the classifier produced
+        when(debounce.accept(any())).thenAnswer(inv -> inv.getArgument(0));
     }
 
     @Test
@@ -48,6 +52,17 @@ class RecognitionControllerTest {
     void webhookDoesNotUpdateSessionWhenClassifierIsInconclusive() {
         when(roomClassifier.classify(any())).thenReturn(Maybe.none());
         var payload = new SidecarPayload(List.of());
+
+        controller.onSidecarPush(payload);
+
+        verify(roomSessionStore, never()).put(any(), any());
+    }
+
+    @Test
+    void webhookDoesNotUpdateSessionWhenDebounceSupressesClassification() {
+        when(roomClassifier.classify(any())).thenReturn(Maybe.of("kitchen"));
+        when(debounce.accept(any())).thenReturn(Maybe.none());
+        var payload = new SidecarPayload(List.of(new DetectedObject("stove", 0.92)));
 
         controller.onSidecarPush(payload);
 
