@@ -20,12 +20,14 @@ public class RoomGraph {
 
     public RoomGraph() {}
 
-    /** Deep-copies an existing graph so a new editing session doesn't share state. */
-    public RoomGraph(RoomGraph source) {
-        source.rooms.forEach(this.rooms::put);
+    /** Returns a deep copy of {@code source} so a new editing session doesn't share state. */
+    public static RoomGraph copyOf(RoomGraph source) {
+        RoomGraph copy = new RoomGraph();
+        source.rooms.forEach(copy.rooms::put);
         source.adjacency.forEach((from, conns) ->
             conns.forEach((to, w) ->
-                this.adjacency.computeIfAbsent(from, k -> new LinkedHashMap<>()).put(to, w)));
+                copy.adjacency.computeIfAbsent(from, k -> new LinkedHashMap<>()).put(to, w)));
+        return copy;
     }
 
     public void addRoom(String name) {
