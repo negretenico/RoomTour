@@ -138,7 +138,9 @@ class AgenticWeatherIT {
             new ButlerRequest("How's the weather?", "kitchen", "agentic-it-session-2")
         );
 
+        // Anthropic is called exactly twice: once for tool_use, once with the tool result.
         anthropicMock.verify(2, postRequestedFor(urlPathEqualTo("/v1/messages")));
-        glaxWeatherMock.verify(1, getRequestedFor(urlPathEqualTo("/api/glax_weather.json")));
+        // GlaxWeather is called at least once by the tool; the scheduler may add extra calls.
+        glaxWeatherMock.verify(moreThanOrExactly(1), getRequestedFor(urlPathEqualTo("/api/glax_weather.json")));
     }
 }
