@@ -32,11 +32,12 @@ class InMemoryLifelogTest {
     }
 
     @Test
-    void butlerKnowsCurrentWeather() {
+    void weatherIsNotInjectedIntoPrompt() {
+        // Weather is now fetched on demand via the weather_current Claude tool,
+        // not pre-injected into the system prompt.
         String output = lifelog.formatForPrompt();
-        assertThat(output).contains("Austin, TX");
-        assertThat(output).contains("Sunny");
-        assertThat(output).contains("72.0°F");
+        assertThat(output).doesNotContain("Austin, TX");
+        assertThat(output).doesNotContain("Sunny");
     }
 
     @Test
