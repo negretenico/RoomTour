@@ -40,7 +40,7 @@ public class InMemoryLifelog implements LifelogService, MutableLifelog {
 
     @Override
     public String formatForPrompt() {
-        return Stream.of(calendarSection(), weatherSection(), healthSection(), notesSection())
+        return Stream.of(calendarSection(), healthSection(), notesSection())
             .flatMap(Optional::stream)
             .collect(Collectors.joining("\n"));
     }
