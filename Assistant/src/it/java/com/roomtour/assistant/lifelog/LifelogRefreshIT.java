@@ -63,11 +63,13 @@ class LifelogRefreshIT {
     }
 
     @Test
-    void schedulerPopulatesWeatherIntoLifelog() {
-        await().atMost(3, SECONDS).untilAsserted(() -> {
-            String prompt = lifelogService.formatForPrompt();
-            assertThat(prompt).contains("Austin");
-            assertThat(prompt).contains("clear sky");
-        });
+    void schedulerFetchesWeatherToKeepCacheWarm() {
+        // Weather is no longer injected into the prompt — Claude fetches it on demand via
+        // the weather_current tool. The scheduler still runs to keep the in-memory cache
+        // warm so tool calls have low latency.
+        await().atMost(3, SECONDS).untilAsserted(() ->
+            wireMock.verify(moreThanOrExactly(1),
+                getRequestedFor(urlPathEqualTo("/api/glax_weather.json")))
+        );
     }
 }

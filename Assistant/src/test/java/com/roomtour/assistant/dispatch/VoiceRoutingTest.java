@@ -250,10 +250,11 @@ class VoiceRoutingTest {
     }
 
     @Test
-    void weatherIntentRoutesToWhatsNewCommand() {
-        when(lifelogService.formatForPrompt()).thenReturn("Sunny, 72°F.");
-        ButlerResponse response = router.route(new ButlerRequest("weather", null, SESSION));
-        assertThat(response.response()).contains("Sunny, 72°F.");
+    void weatherIntentFallsThroughToChatService() {
+        // "weather" and "forecast" no longer match WhatsNewCommand — they fall through to
+        // ChatService so the agentic loop can invoke the weather_current tool.
+        ButlerResponse response = router.route(new ButlerRequest("weather", "living room", SESSION));
+        assertThat(response.response()).isEqualTo("Good morning, sir. How may I be of assistance?");
     }
 
     @Test

@@ -13,8 +13,10 @@ public class WeatherTool implements ButlerTool {
 
     private static final ToolDefinition DEFINITION = new ToolDefinition(
         "weather_current",
-        "Get the current weather conditions for a location. " +
-        "Note: this source does not provide separate daily high/low values — do not report them.",
+        """
+        Get the current weather conditions for a location. \
+        Note: this source does not provide separate daily high/low values — do not report them.\
+        """,
         Map.of("location", Map.of(
             "type", "string",
             "description", "City name or city and state, e.g. 'Austin, TX'"
