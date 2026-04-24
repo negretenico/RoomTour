@@ -13,7 +13,10 @@ import com.roomtour.assistant.dispatch.command.MapCommand;
 import com.roomtour.assistant.core.model.CurrentRoomRepository;
 import com.roomtour.assistant.lifelog.InMemoryLifelog;
 import com.roomtour.assistant.lifelog.LifelogService;
+import com.roomtour.drone.DroneNavigator;
+import com.roomtour.drone.SimulatedDroneNavigator;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
@@ -38,6 +41,13 @@ public class AssistantConfig {
 
     public AssistantConfig(ButlerProperties props) {
         this.props = props;
+    }
+
+    @Bean
+    @ConditionalOnMissingBean(DroneNavigator.class)
+    @ConditionalOnProperty(name = "butler.ros2.enabled", havingValue = "false", matchIfMissing = true)
+    public DroneNavigator simulatedDroneNavigator() {
+        return new SimulatedDroneNavigator();
     }
 
     @Bean

@@ -13,20 +13,21 @@
 
     <artifactId>roomtour-drone</artifactId>
     <name>RoomTour Drone</name>
-    <description>PX4/ROS2 flight control, SLAM, and autonomous navigation (Phase 3+)</description>
+    <description>ROS2 bridge and autonomous navigation — connects Java butler to the robot via rosbridge WebSocket</description>
 
     <dependencies>
         <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-api</artifactId>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter</artifactId>
         </dependency>
         <dependency>
-            <groupId>ch.qos.logback</groupId>
-            <artifactId>logback-classic</artifactId>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
         </dependency>
         <dependency>
-            <groupId>org.junit.jupiter</groupId>
-            <artifactId>junit-jupiter</artifactId>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-test</artifactId>
+            <scope>test</scope>
         </dependency>
     </dependencies>
 </project>

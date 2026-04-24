@@ -24,6 +24,7 @@ import com.roomtour.assistant.navigation.PathfindingService;
 import com.roomtour.assistant.navigation.RoomGraph;
 import com.roomtour.assistant.navigation.RoomGraphHolder;
 import com.roomtour.assistant.navigation.VoiceGraphBuilder;
+import com.roomtour.drone.DroneNavigator;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -64,6 +65,7 @@ class VoiceRoutingTest {
     @Mock GraphPersistenceService     graphPersistence;
     @Mock RoomGraphHolder             graphHolder;
     @Mock PathfindingService          pathfinder;
+    @Mock DroneNavigator              droneNavigator;
 
     PrefixCommandRouter      router;
     RegistryStubClaudeClient stubClient;
@@ -84,7 +86,7 @@ class VoiceRoutingTest {
         WhereAmICommand whereAmI = new WhereAmICommand(roomRepository);
         WhatsNewCommand whatsNew = new WhatsNewCommand(lifelogService);
         MapCommand      map      = new MapCommand(mapSession, navProps, graphFactory, parser, graphPersistence, graphHolder);
-        NavigateCommand navigate = new NavigateCommand(pathfinder, graphHolder, roomRepository);
+        NavigateCommand navigate = new NavigateCommand(pathfinder, graphHolder, roomRepository, droneNavigator);
 
         router = new PrefixCommandRouter(chatService, List.of(whereAmI, whatsNew, map, navigate), map);
     }
