@@ -4,6 +4,7 @@ import com.roomtour.assistant.core.model.ButlerResponse;
 import com.roomtour.assistant.core.model.CurrentRoomRepository;
 import com.roomtour.assistant.navigation.RoomGraphHolder;
 import com.roomtour.assistant.navigation.PathfindingService;
+import com.roomtour.drone.DroneNavigator;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
@@ -20,16 +21,19 @@ public class NavigateCommand implements ButlerCommand {
         "(?i)\\b(navigate(?:\\s+to)?|go\\s+to|take\\s+me\\s+to)\\b\\s*(.*)"
     );
 
-    private final PathfindingService pathfinder;
-    private final RoomGraphHolder graphHolder;
+    private final PathfindingService    pathfinder;
+    private final RoomGraphHolder       graphHolder;
     private final CurrentRoomRepository roomRepository;
+    private final DroneNavigator        droneNavigator;
 
     public NavigateCommand(PathfindingService pathfinder,
                            RoomGraphHolder graphHolder,
-                           CurrentRoomRepository roomRepository) {
+                           CurrentRoomRepository roomRepository,
+                           DroneNavigator droneNavigator) {
         this.pathfinder     = pathfinder;
         this.graphHolder    = graphHolder;
         this.roomRepository = roomRepository;
+        this.droneNavigator = droneNavigator;
     }
 
     @Override public String token() { return "/navigate"; }
@@ -60,7 +64,10 @@ public class NavigateCommand implements ButlerCommand {
         }
         AtomicReference<String> errorMsg = new AtomicReference<>("Could not find a path to " + target + ".");
         return pathfinder.findPath(currentRoom, target)
-            .map(path -> new ButlerResponse("Go: " + String.join(" \u2192 ", path), sessionId))
+            .map(path -> {
+                droneNavigator.navigate(path.getLast());
+                return new ButlerResponse("Go: " + String.join(" \u2192 ", path), sessionId);
+            })
             .onFailure(e -> errorMsg.set(e.getMessage()))
             .getOrElse(() -> new ButlerResponse(errorMsg.get(), sessionId));
     }
