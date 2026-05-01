@@ -27,7 +27,8 @@ class WhisperSttServiceTest {
     @Mock WebClient.ResponseSpec          responseSpec;
 
     private static final VoiceProperties PROPS = new VoiceProperties(
-            false, "http://localhost:8000", "espeak-ng", 800, 500, 15000, 16000, -1.0);
+            false, "http://localhost:8000", "espeak-ng", 800, 500, 15000, 16000, -1.0,
+            "hey jeeves", "that is all jeeves", 60000);
 
     private WhisperSttService service;
 

@@ -32,6 +32,16 @@ class VoiceLoopTest {
     @Mock AudioPlayer            audioPlayer;
     @Mock CurrentRoomRepository  roomRepository;
 
+    private static final VoiceProperties PROPS = new VoiceProperties(
+            false, "http://localhost:8000", "espeak-ng",
+            800, 500, 15000, 16000, -1.0,
+            "hey jeeves", "that is all jeeves", 60000);
+
+    private VoiceLoop activeLoop() {
+        return new VoiceLoop(micCapture, stt, commandRouter, tts, audioPlayer,
+                             roomRepository, PROPS, VoiceLoop.State.ACTIVE);
+    }
+
     @Test
     void fullPipelineFlowsFromMicToSpeaker() throws InterruptedException {
         AudioChunk inputChunk  = new AudioChunk(new byte[]{1, 2, 3, 4}, 16000);
@@ -46,7 +56,7 @@ class VoiceLoopTest {
         doAnswer(inv -> { played.countDown(); return null; })
                 .when(audioPlayer).play(outputChunk);
 
-        VoiceLoop loop = new VoiceLoop(micCapture, stt, commandRouter, tts, audioPlayer, roomRepository);
+        VoiceLoop loop = activeLoop();
         loop.start();
 
         assertThat(played.await(5, TimeUnit.SECONDS)).isTrue();
@@ -66,7 +76,7 @@ class VoiceLoopTest {
             return Try.of(() -> { throw new SilentFrameException("blank transcript"); });
         });
 
-        VoiceLoop loop = new VoiceLoop(micCapture, stt, commandRouter, tts, audioPlayer, roomRepository);
+        VoiceLoop loop = activeLoop();
         loop.start();
 
         assertThat(attempted.await(5, TimeUnit.SECONDS)).isTrue();
@@ -84,7 +94,7 @@ class VoiceLoopTest {
             return Try.of(() -> { throw new RuntimeException("mic error"); });
         });
 
-        VoiceLoop loop = new VoiceLoop(micCapture, stt, commandRouter, tts, audioPlayer, roomRepository);
+        VoiceLoop loop = activeLoop();
         loop.start();
 
         assertThat(secondAttempt.await(5, TimeUnit.SECONDS)).isTrue();
