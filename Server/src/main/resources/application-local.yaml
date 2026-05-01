@@ -3,7 +3,7 @@ logging:
     com.roomtour: DEBUG
 
 butler:
-  ros2: pp
+  ros2:
     enabled: true
   recognition:
     window-size: 5
