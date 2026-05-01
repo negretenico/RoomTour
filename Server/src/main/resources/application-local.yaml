@@ -3,7 +3,7 @@ logging:
     com.roomtour: DEBUG
 
 butler:
-  ros2:
+  ros2: pp
     enabled: true
   recognition:
     window-size: 5
@@ -17,3 +17,9 @@ butler:
     logprob-threshold: -1.0
     max-duration-ms: 15000
     sample-rate-hz: 16000
+    wake-phrase: "hey jeeves"
+    sleep-phrase: "that is all jeeves"
+    inactivity-timeout-ms: 6000
+  briefings:
+    morning-cron: "0 0 8 * * *"
+    evening-cron: "0 0 18 * * *"

@@ -12,5 +12,8 @@ public record VoiceProperties(
         @DefaultValue("500")                      int     silenceThreshold,
         @DefaultValue("15000")                    int     maxDurationMs,
         @DefaultValue("16000")                    int     sampleRateHz,
-        @DefaultValue("-1.0")                     double  logprobThreshold
+        @DefaultValue("-1.0")                     double  logprobThreshold,
+        @DefaultValue("hey jeeves")               String  wakePhrase,
+        @DefaultValue("that is all jeeves")       String  sleepPhrase,
+        @DefaultValue("60000")                    long    inactivityTimeoutMs
 ) {}

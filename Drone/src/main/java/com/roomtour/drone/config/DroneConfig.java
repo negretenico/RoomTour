@@ -1,10 +1,11 @@
 package com.roomtour.drone.config;
 
 import com.roomtour.drone.DroneNavigator;
+import com.roomtour.drone.EventPublishingDroneNavigator;
 import com.roomtour.drone.RosbridgeNavigator;
-import com.roomtour.drone.SimulatedDroneNavigator;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -20,7 +21,8 @@ public class DroneConfig {
 
     @Bean
     @ConditionalOnProperty(name = "butler.ros2.enabled", havingValue = "true")
-    public DroneNavigator rosbridgeNavigator(RosbridgeProperties props) {
-        return new RosbridgeNavigator(props);
+    public DroneNavigator rosbridgeNavigator(RosbridgeProperties props,
+                                             ApplicationEventPublisher publisher) {
+        return new EventPublishingDroneNavigator(new RosbridgeNavigator(props), publisher);
     }
 }
