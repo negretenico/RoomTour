@@ -11,6 +11,7 @@ export default function App() {
   const [events, setEvents] = useState<ServerMessage[]>([]);
 
   useEffect(() => {
+    // TODO: replace with SWR or React Query once the app matures — direct fetch is fine for now
     fetch("/api/v1/graph")
       .then((r) => r.json())
       .then((data: GraphSnapshot) => setGraph(data))

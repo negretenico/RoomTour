@@ -1,17 +1,19 @@
-import { fromAsync, type Result, type ChatResponse } from "./types";
+import { fromAsync, err, type Result, type ChatResponse } from "./types";
 
-export function sendMessage(
+export async function sendMessage(
   message: string,
   sessionId?: string
 ): Promise<Result<ChatResponse>> {
-  return fromAsync(
+  const response = await fromAsync(
     fetch("/api/v1/chat", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ message, sessionId }),
-    }).then((r) => {
-      if (!r.ok) throw new Error(`HTTP ${r.status}`);
-      return r.json() as Promise<ChatResponse>;
     })
   );
+
+  if (!response.ok) return response;
+  if (!response.value.ok) return err(`HTTP ${response.value.status}`);
+
+  return fromAsync(response.value.json() as Promise<ChatResponse>);
 }
