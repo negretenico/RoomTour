@@ -1,0 +1,13 @@
+{
+  "name": "roomtour-frontend",
+  "private": true,
+  "workspaces": [
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "concurrently \"npm run dev -w @roomtour/web\""
+  },
+  "devDependencies": {
+    "concurrently": "^9.0.0"
+  }
+}

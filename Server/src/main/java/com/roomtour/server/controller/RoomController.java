@@ -5,6 +5,7 @@ import com.roomtour.server.model.room.RoomRequest;
 import com.roomtour.server.model.room.RoomResponse;
 import com.roomtour.server.session.RoomSessionStore;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -22,6 +23,12 @@ public class RoomController {
 
     public RoomController(RoomSessionStore roomSessionStore) {
         this.roomSessionStore = roomSessionStore;
+    }
+
+    @GetMapping
+    public ResponseEntity<RoomResponse> currentRoom() {
+        String room = roomSessionStore.getOrDefault(RoomSessionStore.GLOBAL_SESSION, "unknown");
+        return ResponseEntity.ok(new RoomResponse(RoomSessionStore.GLOBAL_SESSION, room));
     }
 
     @PostMapping
