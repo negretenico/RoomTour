@@ -8,6 +8,7 @@ import com.roomtour.recognition.core.model.SidecarPayload;
 import com.roomtour.server.recognition.ClassificationDebounce;
 import com.roomtour.server.session.RoomSessionStore;
 import org.junit.jupiter.api.BeforeEach;
+import org.springframework.context.ApplicationEventPublisher;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -27,12 +28,13 @@ class RecognitionControllerTest {
     @Mock RoomClassifier roomClassifier;
     @Mock ClassificationDebounce debounce;
     @Mock RoomSessionStore roomSessionStore;
+    @Mock ApplicationEventPublisher events;
 
     private RecognitionController controller;
 
     @BeforeEach
     void setUp() {
-        controller = new RecognitionController(roomClassifier, debounce, roomSessionStore);
+        controller = new RecognitionController(roomClassifier, debounce, roomSessionStore, events);
         // pass-through: debounce returns whatever the classifier produced
         when(debounce.accept(any())).thenAnswer(inv -> inv.getArgument(0));
     }

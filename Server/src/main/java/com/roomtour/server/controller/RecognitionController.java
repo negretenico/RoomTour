@@ -5,8 +5,10 @@ import com.roomtour.recognition.core.model.GeometricSignature;
 import com.roomtour.recognition.core.model.RoomObservation;
 import com.roomtour.recognition.core.model.SidecarPayload;
 import com.roomtour.server.recognition.ClassificationDebounce;
+import com.roomtour.server.recognition.RoomDetectedEvent;
 import com.roomtour.server.session.RoomSessionStore;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -29,13 +31,16 @@ public class RecognitionController {
     private final RoomClassifier roomClassifier;
     private final ClassificationDebounce debounce;
     private final RoomSessionStore roomSessionStore;
+    private final ApplicationEventPublisher events;
 
     public RecognitionController(RoomClassifier roomClassifier,
                                  ClassificationDebounce debounce,
-                                 RoomSessionStore roomSessionStore) {
-        this.roomClassifier = roomClassifier;
-        this.debounce       = debounce;
+                                 RoomSessionStore roomSessionStore,
+                                 ApplicationEventPublisher events) {
+        this.roomClassifier   = roomClassifier;
+        this.debounce         = debounce;
         this.roomSessionStore = roomSessionStore;
+        this.events           = events;
     }
 
     @PostMapping("/classify")
@@ -49,6 +54,7 @@ public class RecognitionController {
             .ifPresent(room -> {
                 log.info("Room confirmed via sliding window: {}", room);
                 roomSessionStore.put(RoomSessionStore.GLOBAL_SESSION, room);
+                events.publishEvent(new RoomDetectedEvent(this, room));
             });
         return ResponseEntity.ok().build();
     }
