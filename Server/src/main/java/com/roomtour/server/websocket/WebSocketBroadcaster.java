@@ -1,8 +1,9 @@
 package com.roomtour.server.websocket;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.roomtour.drone.ExploreCompletedEvent;
 import com.roomtour.drone.NavigationCompleted;
-import com.roomtour.server.recognition.RoomDetectedEvent;
+import com.roomtour.drone.RoomDetectedEvent;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
@@ -46,6 +47,11 @@ public class WebSocketBroadcaster extends TextWebSocketHandler {
     @EventListener
     public void onNavigationCompleted(NavigationCompleted event) {
         broadcast(Map.of("type", "NAVIGATION_COMPLETED", "destination", event.destination()));
+    }
+
+    @EventListener
+    public void onExploreCompleted(ExploreCompletedEvent event) {
+        broadcast(Map.of("type", "EXPLORATION_COMPLETE"));
     }
 
     private void broadcast(Object payload) {

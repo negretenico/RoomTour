@@ -1,7 +1,7 @@
 package com.roomtour.server.websocket;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.roomtour.server.recognition.RoomDetectedEvent;
+import com.roomtour.drone.RoomDetectedEvent;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.web.socket.TextMessage;

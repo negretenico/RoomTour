@@ -1,24 +1,26 @@
 package com.roomtour.assistant.navigation;
 
 /**
- * Stub for future sensor-driven autonomous map building.
- * Will be implemented in a follow-up issue once the drone's
- * odometry and SLAM pipeline is available.
+ * GraphBuildingService implementation for autonomous sensor-driven map building.
+ * Wraps a fresh RoomGraph; connections are inferred by {@link ExplorationService}
+ * as the drone transitions between detected rooms.
  */
 public class ExplorationGraphBuilder implements GraphBuildingService {
 
+    private final RoomGraph graph = new RoomGraph();
+
     @Override
     public void addRoom(String name) {
-        throw new UnsupportedOperationException("Exploration mode not yet implemented");
+        graph.addRoom(name);
     }
 
     @Override
     public void addConnection(String from, String to, double weight) {
-        throw new UnsupportedOperationException("Exploration mode not yet implemented");
+        graph.addConnection(from, to, weight);
     }
 
     @Override
     public RoomGraph getGraph() {
-        throw new UnsupportedOperationException("Exploration mode not yet implemented");
+        return graph;
     }
 }

@@ -25,6 +25,13 @@ butler:
         objects: [toilet, toothbrush, hair drier, sink]
         min-area-m2: 3
         max-area-m2: 15
+  exploration:
+    simulated-rooms:
+      - kitchen
+      - living room
+      - bedroom
+      - hallway
+    simulated-room-interval-ms: 3000
   name: Jeeves
   user-name: Nico
   personality: formal and witty home drone butler
