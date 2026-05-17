@@ -5,7 +5,7 @@ import com.roomtour.recognition.core.model.GeometricSignature;
 import com.roomtour.recognition.core.model.RoomObservation;
 import com.roomtour.recognition.core.model.SidecarPayload;
 import com.roomtour.server.recognition.ClassificationDebounce;
-import com.roomtour.server.recognition.RoomDetectedEvent;
+import com.roomtour.drone.RoomDetectedEvent;
 import com.roomtour.server.session.RoomSessionStore;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;

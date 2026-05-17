@@ -15,7 +15,10 @@ import com.roomtour.assistant.lifelog.InMemoryLifelog;
 import com.roomtour.assistant.lifelog.LifelogService;
 import com.roomtour.drone.DroneNavigator;
 import com.roomtour.drone.EventPublishingDroneNavigator;
+import com.roomtour.drone.Explorer;
 import com.roomtour.drone.SimulatedDroneNavigator;
+import com.roomtour.drone.SimulatedExplorer;
+import com.roomtour.drone.config.ExplorationProperties;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
@@ -35,7 +38,7 @@ import java.util.List;
  * that depends on roomtour-assistant gets all assistant beans automatically.
  */
 @Configuration
-@EnableConfigurationProperties({ButlerProperties.class, NavigationProperties.class})
+@EnableConfigurationProperties({ButlerProperties.class, NavigationProperties.class, ExplorationProperties.class})
 @ComponentScan(basePackages = "com.roomtour.assistant")
 public class AssistantConfig {
 
@@ -50,6 +53,14 @@ public class AssistantConfig {
     @ConditionalOnProperty(name = "butler.ros2.enabled", havingValue = "false", matchIfMissing = true)
     public DroneNavigator simulatedDroneNavigator(ApplicationEventPublisher publisher) {
         return new EventPublishingDroneNavigator(new SimulatedDroneNavigator(), publisher);
+    }
+
+    @Bean
+    @ConditionalOnMissingBean(Explorer.class)
+    @ConditionalOnProperty(name = "butler.ros2.enabled", havingValue = "false", matchIfMissing = true)
+    public Explorer simulatedExplorer(ExplorationProperties explorationProperties,
+                                      ApplicationEventPublisher publisher) {
+        return new SimulatedExplorer(explorationProperties, publisher);
     }
 
     @Bean
